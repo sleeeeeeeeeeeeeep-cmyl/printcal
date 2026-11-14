@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Published at https://sleeeeeeeeeeeeeep-cmyl.github.io/printcal/ . If the repository is not named "printcal", change that address in the 3 places below. -->
+<title>PrintCal — Ender 3 / Ender 5 Calibration Calculator for Klipper &amp; Marlin (rotation_distance, e-steps, pressure advance)</title>
+<meta name="description" content="Free Creality Ender calibration calculator with presets for every Ender 3, Ender 5 and Ender 6 and 19 extruders, including Sprite SE/Pro direct-drive upgrades. Safety-checked Klipper and Marlin values.">
+<meta name="keywords" content="Ender 3 rotation_distance, Ender 3 S1 rotation_distance, Ender 3 e-steps, Sprite Extruder SE e-steps, Ender 3 Neo direct drive Klipper, Sprite gear_ratio 42:12, Micro Swiss NG e-steps, Hemera e-steps, Orbiter rotation_distance, Sherpa Mini gear_ratio, Klipper rotation_distance calculator, pressure advance calculator, input shaper calculator">
+<meta name="author" content="Vidom">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://sleeeeeeeeeeeeeep-cmyl.github.io/printcal/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PrintCal — Ender calibration calculator for Klipper &amp; Marlin">
+<meta property="og:description" content="Presets for every Creality Ender plus extruder upgrades. Safety-checked rotation_distance, e-steps, pressure advance, input shaper and more.">
+<meta property="og:url" content="https://sleeeeeeeeeeeeeep-cmyl.github.io/printcal/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#101317">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23101317'/%3E%3Cpath d='M14 46h36M18 40h28M22 34h20M26 28h12' stroke='%23ffb020' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M32 8v12m-6-6 6 6 6-6' stroke='%23e8ecf1' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "PrintCal",
+  "alternateName": "PrintCal Ender Calibration Calculator",
+  "url": "https://sleeeeeeeeeeeeeep-cmyl.github.io/printcal/",
+  "description": "Calibration calculator for Creality Ender 3, Ender 5 and Ender 6 printers on Klipper or Marlin, with presets taken from Klipper's official configs and extruder-upgrade values from the manufacturers. Every output is range-checked before it can be copied.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any (runs in the browser)",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Organization", "name": "Vidom" },
+  "featureList": [
+    "Presets for Ender 3, 3 Pro, 3 V2, 3 Neo, 3 V2 Neo, 3 Max, 3 S1, 3 S1 Pro, 3 S1 Plus, 3 V3 SE/KE/V3/Plus, Ender 5, 5 Pro, 5 Plus, 5 S1, Ender 6, Ender 2, Ender 2 Pro",
+    "Extruders: Creality MK8, Creality Direct Drive Upgrade Kit, Sprite Extruder SE (Neo kit), Sprite Extruder Pro, Micro Swiss Direct Drive / NG / bowden, Bondtech BMG / DDX / LGX / LGX Lite, E3D Hemera / Hemera XS / Titan, LDO Orbiter v2.0, Sherpa Mini 8T/10T, Voron Clockwork 2, BIQU H2",
+    "Bowden-to-direct-drive conversion checklist: gear_ratio, direction, retraction, pressure advance, probe offsets",
+    "Generated Klipper config edits and commands verified against real Klipper",
+    "Klipper rotation_distance and Marlin e-steps with gear_ratio mismatch detection",
+    "Pressure advance, input shaper, flow ratio, max volumetric speed, skew, shrinkage, temperature and retraction towers",
+    "Hotend temperature cap (PTFE-lined vs all-metal) enforced on tower calculations",
+    "PID autotune command builder (PID_CALIBRATE / M303) with hotend and bed temperature limits",
+    "X/Y/Z rotation_distance and steps/mm from belt pitch, pulley teeth and leadscrew threads",
+    "Consolidated list of config changes for Klipper or Marlin"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"What is the Ender 3 V2 rotation_distance in Klipper?","acceptedAnswer":{"@type":"Answer","text":"Klipper's official Ender 3 V2 and Ender 3 Pro configs use rotation_distance 34.406 for the stock extruder, which corresponds to about 93 steps/mm. Calibrate it with the measure-and-trim method because every extruder differs slightly."}},
+    {"@type":"Question","name":"What is the Ender 3 S1 rotation_distance and gear_ratio?","acceptedAnswer":{"@type":"Answer","text":"Klipper's official Ender 3 S1 config uses rotation_distance 26.359 with gear_ratio 42:12 for the Sprite extruder, equivalent to about 424.9 steps/mm. Without the gear_ratio line the equivalent rotation_distance is about 7.53."}},
+    {"@type":"Question","name":"What rotation_distance does a Creality Sprite Extruder SE need on an Ender 3 Neo with Klipper?","acceptedAnswer":{"@type":"Answer","text":"Creality's Sprite Extruder Kit (Neo Series) manual gives 424.9 e-steps as the reference value. In Klipper use gear_ratio: 42:12 with rotation_distance: 26.359, or rotation_distance: 7.531 with no gear_ratio line. Keep retraction under 3 mm, check the extruder direction, and re-measure probe offsets after the swap."}},
+    {"@type":"Question","name":"What e-steps should I use for a Micro Swiss NG direct drive on an Ender 3?","acceptedAnswer":{"@type":"Answer","text":"Micro Swiss's NG installation guide sets e-steps to 400. In Klipper that is rotation_distance = 200 × 16 ÷ 400 = 8.0. Then calibrate with a slow 50–100 mm extrusion test."}},
+    {"@type":"Question","name":"How do I calculate Klipper rotation_distance for my extruder?","acceptedAnswer":{"@type":"Answer","text":"Mark the filament about 70 mm above the extruder, extrude 50 mm slowly (G91 then G1 E50 F60), and measure the mark again. New rotation_distance = previous × actual ÷ requested, rounded to three decimals."}},
+    {"@type":"Question","name":"How do I calculate pressure advance from a Klipper tuning tower?","acceptedAnswer":{"@type":"Answer","text":"pressure_advance = START + measured height × FACTOR. Klipper uses FACTOR .005 for direct drive and .020 for long bowden. Example: 0 + 12.90 × 0.020 = 0.258."}},
+    {"@type":"Question","name":"What are the Ender 3 X, Y and Z rotation_distance values in Klipper?","acceptedAnswer":{"@type":"Answer","text":"Every official Klipper Ender config uses rotation_distance 40 for X and Y (2 mm GT2 belt × 20-tooth pulley, 80 steps/mm) and 8 for Z (400 steps/mm), except the Ender 5 Pro and Ender 5 Plus, which use 4 for Z (800 steps/mm). These come from the hardware; Klipper's documentation says not to calibrate X, Y or Z by measuring test prints."}},
+    {"@type":"Question","name":"How hot can I print with a stock Ender 3 hotend?","acceptedAnswer":{"@type":"Answer","text":"Stock Ender 3-class hotends are PTFE-lined, and the common guideline is to stay at or below 240 °C to avoid degrading the PTFE. PrintCal blocks temperature towers above that unless you select an all-metal hotend."}}
+  ]
+}
+</script>
+
+<style>
+:root{
+  --bg:#0e1114; --panel:#161a1f; --panel2:#1c2127; --panel3:#222830; --line:#2a313a; --line2:#353e49;
+  --ink:#e8ecf1; --mute:#9aa5b1; --dim:#8a95a2; --onacc:#14171c;
+  --acc:#ffb020; --acc2:#3ec7a5; --warn:#ffb020; --bad:#ff6b5a; --okc:#3ec7a5;
+  --mono:ui-monospace,SFMono-Regular,"Cascadia Code",Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#f2f3f5; --panel:#ffffff; --panel2:#f6f7f9; --panel3:#eef0f3; --line:#dde1e6; --line2:#cdd3da;
+    --ink:#14171c; --mute:#4f5b67; --dim:#5c6772; --acc:#8a4f00; --acc2:#0b6e56; --warn:#8a4f00; --bad:#b3261c; --okc:#0b6e56; --onacc:#ffffff; }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--acc)}
+code,kbd{font-family:var(--mono);font-size:.9em;background:var(--panel3);padding:1px 5px;border-radius:5px}
+.dim{color:var(--dim)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 18px}
+
+/* header */
+header.top{border-bottom:1px solid var(--line);background:
+  radial-gradient(1200px 300px at 85% -60%,rgba(255,176,32,.12),transparent 60%),
+  repeating-linear-gradient(0deg,transparent 0 5px,rgba(255,176,32,.03) 5px 6px),var(--panel)}
+header.top .wrap{padding-top:26px;padding-bottom:24px}
+.brand{display:flex;align-items:center;gap:10px;font:13px var(--mono);letter-spacing:.06em;color:var(--mute)}
+.brand b{color:var(--acc);font-size:15px;letter-spacing:.12em}
+h1{font-size:clamp(23px,3.4vw,36px);line-height:1.12;margin:10px 0 8px;letter-spacing:-.015em;max-width:900px}
+.lede{color:var(--mute);max-width:780px;margin:0}
+
+/* sticky profile bar */
+.pbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.pbar .wrap{display:flex;align-items:center;gap:8px;padding-top:9px;padding-bottom:9px;overflow-x:auto;white-space:nowrap}
+.pbar .lbl{font:11px var(--mono);letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-right:4px}
+.pill{font:12px var(--mono);padding:3px 9px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--ink)}
+.pill.acc{border-color:var(--acc);color:var(--acc)}
+.pbar a.edit{margin-left:auto;font:12px var(--mono)}
+
+.layout{display:grid;grid-template-columns:220px 1fr;gap:28px;padding-top:24px;padding-bottom:60px}
+nav.side{position:sticky;top:62px;align-self:start;max-height:calc(100vh - 80px);overflow:auto}
+nav.side h2{font:600 11px var(--mono);letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin:0 0 8px}
+nav.side ol{list-style:none;margin:0;padding:0;counter-reset:n}
+nav.side li{counter-increment:n}
+nav.side a{display:flex;gap:10px;padding:6px 10px;border-radius:8px;color:var(--mute);text-decoration:none;font-size:14px}
+nav.side a::before{content:counter(n,decimal-leading-zero);font:12px var(--mono);color:var(--dim);padding-top:2px}
+nav.side a:hover,nav.side a.on{background:var(--panel2);color:var(--ink)}
+nav.side a.on::before{color:var(--acc)}
+
+/* cards */
+main{min-width:0}
+main > section{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 22px 18px;margin-bottom:20px}
+section > header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+section h2{margin:0;font-size:20px;letter-spacing:-.005em}
+section h2 small{display:block;font:12px var(--mono);color:var(--dim);letter-spacing:.08em;margin-bottom:4px;text-transform:uppercase}
+.tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{font:11px var(--mono);padding:2px 8px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);color:var(--mute)}
+.desc{color:var(--mute);margin:10px 0 16px;max-width:840px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;align-items:end}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.sub{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)}
+.sub.first{margin-top:0;padding-top:0;border-top:0}
+.sub h3{font-size:15px;margin:0 0 4px}
+.sub p{margin:0 0 12px;color:var(--mute);font-size:14px}
+label.f{display:flex;flex-wrap:wrap;align-items:baseline;align-content:flex-end;column-gap:6px;row-gap:5px;font-size:12.5px;color:var(--mute);height:100%}
+label.f span.u{color:var(--dim);font:11px var(--mono)}
+label.f input,label.f select{flex:1 0 100%}
+input[type=number],input[type=text],select{width:100%;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:15px var(--mono);outline:none;transition:border-color .15s,background .15s}
+select{font-family:var(--sans);font-size:14px}
+input:focus,select:focus{border-color:var(--acc)}
+input.preset{background:color-mix(in srgb,var(--acc) 7%,var(--panel2))}
+.chk{display:block;font-size:13.5px;color:var(--mute);cursor:pointer;line-height:1.7}
+.chk input{accent-color:var(--acc);width:16px;height:16px;vertical-align:-3px;margin:0 8px 0 0}
+code{overflow-wrap:anywhere}
+
+/* results */
+.res{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.big{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:10px;padding:11px 14px}
+.big .k{font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.big .v{font:600 23px var(--mono);margin-top:2px;word-break:break-all}
+.big .v small{font-size:13px;color:var(--mute);font-weight:400}
+.big.alt{border-left-color:var(--acc2)} .big.bad{border-left-color:var(--bad)}
+.msg{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;margin-top:9px;padding:9px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--mute)}
+.msg b{color:var(--ink)}
+.msg.warn{border-color:color-mix(in srgb,var(--warn) 45%,var(--line));background:color-mix(in srgb,var(--warn) 8%,var(--panel2))}
+.msg.block{border-color:color-mix(in srgb,var(--bad) 55%,var(--line));background:color-mix(in srgb,var(--bad) 10%,var(--panel2))}
+.msg.ok{border-color:color-mix(in srgb,var(--okc) 45%,var(--line))}
+.msg .ic{font:700 12px var(--mono);padding-top:1px;flex:0 0 auto}
+.msg.warn .ic{color:var(--warn)} .msg.block .ic{color:var(--bad)} .msg.ok .ic{color:var(--okc)}
+.code{position:relative;margin-top:10px;background:#0a0c0f;color:#d9f2e8;border:1px solid var(--line);border-radius:10px;padding:12px 70px 12px 14px;font:13.5px/1.55 var(--mono);white-space:pre-wrap;word-break:break-word}
+.code .cmt{color:#7f8c97}
+.code button{position:absolute;top:8px;right:8px;background:#1d2229;color:#cfd6dd;border-color:#333b45}
+.codecap{font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:12px}
+button{font:12px var(--mono);background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--acc);color:var(--acc)}
+button.ovr{margin-top:8px;border-color:var(--bad);color:var(--bad)}
+.formula{margin-top:14px;font-size:13px;color:var(--mute);border-top:1px solid var(--line);padding-top:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.formula code{color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent}
+.seg button.on{background:var(--acc);color:var(--onacc)}
+table.t{border-collapse:collapse;width:100%;margin-top:10px;font:13px var(--mono)}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:right;vertical-align:top}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t th{color:var(--dim);font-weight:500}
+.tblwrap{overflow-x:auto}
+#ref table.t td:last-child,#ref table.t th:last-child{text-align:left}
+
+/* setup */
+#setup{border-color:color-mix(in srgb,var(--acc) 40%,var(--line))}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+.fact{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.fact .k{font:10.5px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+.fact .v{font:600 15px var(--mono);margin-top:2px}
+.fact .s{font-size:11.5px;color:var(--dim)}
+.guard{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.guard div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--mute)}
+.guard b{color:var(--ink);display:block;margin-bottom:4px}
+.guard ul{margin:0;padding-left:18px}
+[data-fw-only]{display:none}
+body.fw-klipper [data-fw-only~="klipper"], body.fw-marlin [data-fw-only~="marlin"]{display:block}
+.faq details,.guide details{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:10px}
+.faq summary,.guide summary{cursor:pointer;font-weight:600}
+.guide details > :not(summary){color:var(--mute);font-size:14px}
+.guide details ul{margin:8px 0 0;padding-left:18px}.guide details li{margin:4px 0}
+ol.steps{margin:0 0 16px;padding-left:22px}ol.steps li{margin:6px 0;color:var(--mute)}ol.steps li b{color:var(--ink)}
+#limtable{font:13px/1.45 var(--sans);min-width:600px}#limtable th,#limtable td{text-align:left}#limtable td:first-child{color:var(--ink);white-space:nowrap}
+#dataErr{margin-bottom:20px}#dataErr ul{margin:6px 0 0;padding-left:18px}
+.faq p{color:var(--mute);margin:8px 0 0}
+footer{border-top:1px solid var(--line);color:var(--mute);font-size:13px}
+footer .wrap{padding:22px 18px 40px}
+footer ul{padding-left:18px;margin:6px 0 14px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--acc);color:var(--onacc);font:600 13px var(--mono);padding:8px 14px;border-radius:8px;transition:.2s;pointer-events:none;z-index:30}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  nav.side{position:static;max-height:none}
+  nav.side ol{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
+  nav.side a{white-space:nowrap;border:1px solid var(--line)}
+  main > section{padding:16px}
+  .guard{grid-template-columns:1fr}
+}
+@media (max-width:440px){ .grid{grid-template-columns:1fr 1fr} .grid label.f.span2{grid-column:1 / -1} }
+</style>
+</head>
+<body class="fw-marlin">
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b>PRINTCAL</b><span>// by Vidom</span></div>
+    <h1>Ender Calibration Calculator for Klipper &amp; Marlin</h1>
+    <p class="lede">Pick your Creality Ender, its extruder (stock, Creality's direct-drive kits, Sprite SE/Pro, Micro Swiss, Bondtech, E3D, Orbiter, Sherpa, H2) and other upgrades, then calibrate the extruder, pressure advance, input shaper, flow, max volumetric speed, skew and towers. Presets come from <strong>Klipper's official printer configs</strong> and the <strong>extruder makers' own documentation</strong>. Every result is range-checked against your setup before you can copy it.</p>
+  </div>
+</header>
+
+<section class="pbar" aria-label="Current printer profile"><div class="wrap" id="pbar"></div></section>
+
+<div class="wrap layout">
+<nav class="side" aria-label="Sections">
+  <h2>Sections</h2>
+  <ol>
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#setup">Your printer</a></li>
+    <li><a href="#pid">PID tuning</a></li>
+    <li><a href="#extruder">Extruder calibration</a></li>
+    <li><a href="#pressure-advance">Pressure advance</a></li>
+    <li><a href="#input-shaper">Input shaper</a></li>
+    <li><a href="#flow-ratio">Flow ratio</a></li>
+    <li><a href="#max-volumetric-speed">Max volumetric speed</a></li>
+    <li><a href="#tower">Temp &amp; retraction towers</a></li>
+    <li><a href="#skew">Skew correction</a></li>
+    <li><a href="#shrinkage">Shrinkage / scale</a></li>
+    <li><a href="#axis">Axis steps (X/Y/Z)</a></li>
+    <li><a href="#filament">Filament left</a></li>
+    <li><a href="#summary">All changes</a></li>
+    <li><a href="#ref">Ender reference values</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ol>
+</nav>
+
+<main>
+<div id="dataErr" class="msg block" role="alert" hidden></div>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how-it-works" class="guide">
+  <header>
+    <h2><small>Start here</small>How PrintCal works</h2>
+    <div class="tags"><span class="tag">2-minute read</span></div>
+  </header>
+  <p class="desc">You print a test, measure it, and type the measurement in. PrintCal works out the setting, checks it against your hardware, and gives you the exact command or config line. It never talks to your printer: nothing changes until you paste something in yourself.</p>
+  <ol class="steps">
+    <li><b>Describe your printer.</b> Pick the model, firmware and extruder under <a href="#setup">Your printer</a>. Starting values, the commands shown (Klipper or Marlin) and every safety limit follow from this.</li>
+    <li><b>Calibrate in order:</b> PID tuning (only after a hotend, heater or fan change) → extruder → pressure advance → flow ratio → max volumetric speed, then towers, input shaper, skew and shrinkage as you need them. Each step assumes the earlier ones are right. A flow fix can't make up for a wrong extruder value; it just hides it.</li>
+    <li><b>Replace the example numbers.</b> Every calculator starts with sample measurements so you can see how it works. Type yours over them. Until you do, that result stays out of "All changes".</li>
+    <li><b>Test, then save.</b> Klipper results come in pairs: a live command to try now (forgotten on restart) and the line to make permanent in printer.cfg. Marlin results end with <code>M500</code>, which saves them.</li>
+    <li><b>Apply everything at once.</b> <a href="#summary">All changes</a> collects every result that passed its checks.</li>
+  </ol>
+
+  <details>
+    <summary>Reading the results</summary>
+    <ul>
+      <li><b>Tinted input</b>: a value PrintCal filled in from your preset. It's a starting point; overwrite it with what your printer actually uses.</li>
+      <li><b>OK</b>: inside the expected range for your setup.</li>
+      <li><b>!</b> (warning): the result is shown, but something is unusual. Read it before applying.</li>
+      <li><b>✕</b> (blocked): the result is hidden because it's outside a safe range. That almost always means a measuring or mechanical problem, so fix that and re-measure. The override button shows the value anyway if you're sure.</li>
+      <li><b>Formula line</b> at the bottom of each card: the exact maths used, with a link to the documentation it comes from.</li>
+      <li><b>copy</b> copies exactly the text shown in that box. Lines starting with <code>#</code> (config) or <code>;</code> (console) are comments and are safe to paste.</li>
+    </ul>
+  </details>
+
+  <details>
+    <summary>Customizing it for your setup</summary>
+    <ul>
+      <li><b>Extruder not in the list?</b> Choose <em>Other / custom extruder</em>, then type the value your printer uses now into the extruder calculator (Klipper: <code>rotation_distance</code> from printer.cfg; Marlin: the <code>E</code> number from <code>M503</code>). The "doesn't match the preset" check is skipped; every other check still runs.</li>
+      <li><b>Upgraded hotend?</b> Set <em>Hotend</em> to all-metal and enter the <code>max_temp</code> from your firmware. The temperature-tower cap becomes max_temp − <span data-lim="OVERSHOOT_C">15</span> °C instead of <span data-lim="PTFE_CAP_C">240</span> °C.</li>
+      <li><b>Different nozzle?</b> Pick its size in setup. The example line width, layer height and wall target follow it until you type your own.</li>
+      <li><b>Different motor or microsteps?</b> Set them in setup. Marlin e-steps scale with both. Klipper's <code>rotation_distance</code> doesn't; Klipper reads them from <code>microsteps</code> and <code>full_steps_per_rotation</code> instead.</li>
+      <li><b>The gear_ratio box</b> (Klipper only): tick it only if your <code>[extruder]</code> section has a <code>gear_ratio:</code> line. PrintCal ticks it when the extruder maker or the official config uses one, so check it against your file.</li>
+      <li><b>Self-built Marlin</b> with <code>LIN_ADVANCE</code> or <code>INPUT_SHAPING</code>: pick <em>Custom Marlin 2.1.2+</em>.</li>
+      <li><b>Accelerometer</b> (Klipper only): pick it in setup and the input-shaper card shows the automatic <code>SHAPER_CALIBRATE</code> route.</li>
+    </ul>
+  </details>
+
+  <details>
+    <summary>Safety limits PrintCal uses</summary>
+    <p style="margin:8px 0 0">"Docs" means the limit comes from Klipper, firmware or maker documentation. "PrintCal" means it's this tool's own conservative choice. You can change these in your own copy (see the next section).</p>
+    <div class="tblwrap"><table class="t" id="limtable">
+      <thead><tr><th>Check</th><th>Warns when</th><th>Blocks when</th><th>Basis</th></tr></thead>
+      <tbody>
+        <tr><td>Extruder correction</td><td>change &gt; <span data-lim="EX_WARN" data-fmt="pct">10</span> %</td><td>change &gt; <span data-lim="EX_BLOCK" data-fmt="pct">25</span> %</td><td>PrintCal</td></tr>
+        <tr><td>Current value vs preset</td><td>&gt; <span data-lim="NOMINAL_MISMATCH" data-fmt="pct">25</span> % apart</td><td>—</td><td>PrintCal</td></tr>
+        <tr><td>Pressure advance</td><td>&gt; <span data-lim="PA_DD_WARN">0.2</span> on direct drive</td><td>&lt; 0 or &gt; <span data-lim="PA_MAX">1</span></td><td>Docs (Klipper range) + PrintCal</td></tr>
+        <tr><td>Input shaper frequency</td><td>&lt; <span data-lim="IS_LOW">25</span> Hz</td><td>&lt; <span data-lim="IS_MIN">15</span> or &gt; <span data-lim="IS_MAX">150</span> Hz</td><td>PrintCal</td></tr>
+        <tr><td>Temperature tower</td><td>below 170 °C (cold-extrusion limit)</td><td>above <span data-lim="PTFE_CAP_C">240</span> °C on PTFE-lined hotends, or max_temp − <span data-lim="OVERSHOOT_C">15</span> °C</td><td>Docs (firmware) + common PTFE guideline</td></tr>
+        <tr><td>PID tuning target</td><td>hotend below 170 °C</td><td>hotend above the tower cap; bed above <span data-lim="BED_CAP_C">110</span> °C, or the preset's bed max_temp if that's lower</td><td>Docs (firmware) + PrintCal</td></tr>
+        <tr><td>Retraction tower</td><td>above the extruder maker's limit, otherwise &gt; <span data-lim="RETRACT_DD_WARN">2</span> mm direct / <span data-lim="RETRACT_BOWDEN_WARN">7</span> mm bowden</td><td>—</td><td>Docs (maker) + PrintCal</td></tr>
+        <tr><td>Flow ratio</td><td>outside <span data-lim="FLOW_LO">0.85</span>–<span data-lim="FLOW_HI">1.15</span></td><td>—</td><td>PrintCal</td></tr>
+        <tr><td>Skew</td><td>&gt; <span data-lim="SKEW_WARN_DEG">1</span>° out of square</td><td>—</td><td>PrintCal</td></tr>
+        <tr><td>Shrinkage / scale</td><td>correction &gt; <span data-lim="SCALE_WARN_PCT">3</span> %, or X and Y differ by &gt; <span data-lim="XY_DIFF_WARN_PCT">0.3</span> %</td><td>—</td><td>PrintCal</td></tr>
+      </tbody>
+    </table></div>
+  </details>
+
+  <details>
+    <summary>What's saved, and where</summary>
+    <ul>
+      <li>Your setup and measurements are saved in this browser only (local storage), so they're still there next visit. Nothing is uploaded, and there's no tracking.</li>
+      <li>A different browser or device starts fresh. <em>Reset everything</em> at the bottom of the page clears it all.</li>
+    </ul>
+  </details>
+
+  <details>
+    <summary>Running your own copy: adding printers, extruders and limits</summary>
+    <ul>
+      <li>PrintCal is one <code>index.html</code> file. Save it, edit it in any text editor, and open it in a browser. To publish it, put it in a GitHub repository and turn on GitHub Pages.</li>
+      <li>Everything you'd want to change is in one block near the end of the file, marked <code>CUSTOMIZE HERE</code>: the <code>PRINTERS</code> list, the <code>EXTRUDERS</code> list, the safety <code>LIMITS</code> and the <code>DEFAULT_PRINTER</code>. Each preset is one line. Copy a similar line, change it, save, reload.</li>
+      <li>Every field is explained in the comment above the lists. Only <code>id</code> and <code>name</code> are required; anything you leave out falls back to a safe default.</li>
+      <li>If an entry has a mistake (a typo in <code>drive</code>, a gear written <code>42/12</code> instead of <code>42:12</code>, a duplicate <code>id</code>), PrintCal skips that one entry and lists the problem in a red box at the top of the page. It never calculates with a broken preset.</li>
+    </ul>
+  </details>
+</section>
+
+<!-- ============ SETUP ============ -->
+<section id="setup">
+  <header>
+    <h2><small>Step 0</small>Your printer &amp; upgrades</h2>
+    <div class="tags"><span class="tag">presets</span><span class="tag">accessories</span></div>
+  </header>
+  <p class="desc">Everything below adapts to this: starting values, which commands are shown (Klipper or Marlin), pressure-advance test range, temperature limits, and the safety checks.</p>
+  <div class="grid wide">
+    <label class="f">Printer<select id="s_printer"></select></label>
+    <label class="f">Firmware<select id="s_fw">
+      <option value="marlin">Stock Creality Marlin</option>
+      <option value="marlin212">Custom Marlin 2.1.2+ (TH3D, self-built…)</option>
+      <option value="klipper">Klipper</option>
+      <option value="crealityos">Creality OS / Sonic Pad / Nebula Pad (Klipper-based)</option></select></label>
+    <label class="f">Extruder<select id="s_ext"></select></label>
+    <label class="f">Mounting<select id="s_drive"><option value="bowden">Bowden</option><option value="direct">Direct drive</option></select></label>
+    <label class="f">Hotend<select id="s_hot"><option value="ptfe">PTFE-lined (stock style)</option><option value="allmetal">All-metal (Sprite Pro, Micro Swiss, Spider…)</option></select></label>
+    <label class="f">Hotend max_temp in firmware <span class="u">°C · Marlin: HEATER_0_MAXTEMP</span><input type="number" step="1" id="s_maxT"></label>
+    <label class="f">Nozzle<select id="s_noz"><option value="0.2">0.2 mm</option><option value="0.25">0.25 mm</option><option value="0.3">0.3 mm</option><option value="0.4" selected>0.4 mm (stock)</option><option value="0.5">0.5 mm</option><option value="0.6">0.6 mm</option><option value="0.8">0.8 mm</option><option value="1">1.0 mm</option></select></label>
+    <label class="f">Extruder motor<select id="s_full"><option value="200">1.8° (200 steps/rev)</option><option value="400">0.9° (400 steps/rev)</option></select></label>
+    <label class="f">Extruder microsteps<select id="s_micro"><option>8</option><option selected>16</option><option>32</option><option>64</option><option>128</option><option>256</option></select></label>
+    <label class="f" data-k-only>Accelerometer (Klipper)<select id="s_adxl"><option value="none">None</option><option value="adxl">ADXL345 / LIS2DW / MPU-9250 fitted</option></select></label>
+  </div>
+  <div class="sub" data-k-only style="margin-top:14px;padding-top:12px">
+    <label class="chk"><input type="checkbox" id="s_gear"> My <code>[extruder]</code> section uses a <code>gear_ratio:</code> line</label>
+    <p style="margin:6px 0 0;font-size:13px">This changes what <code>rotation_distance</code> means. With a gear ratio the number is several times bigger (Sprite: 26.359 with <code>42:12</code> vs 7.53 without). Mixing these up is the most common way to wreck extrusion after an upgrade.</p>
+  </div>
+  <div class="facts" id="facts"></div>
+  <div id="setupMsgs"></div>
+  <div class="guard">
+    <div><b>What PrintCal will output</b>
+      <ul><li>Single keys to change inside sections you already have (<code>rotation_distance</code>, <code>pressure_advance</code>, <code>shaper_freq_x/y</code>)</li><li>Live test commands that are lost on restart, so you can try a value before saving it</li><li>Marlin <code>M92</code> / <code>M900</code> / <code>M593</code> followed by <code>M500</code></li></ul></div>
+    <div><b>What PrintCal never outputs</b>
+      <ul><li>Pins, endstops, <code>position_min/max</code>, homing, probe offsets, thermistor types or driver currents</li><li>Whole config files to paste over yours</li><li>Any value that fails its range check, unless you press override</li></ul></div>
+  </div>
+</section>
+
+<!-- ============ PID ============ -->
+<section id="pid" data-calc="pd">
+  <header>
+    <h2><small>Heaters</small>PID tuning</h2>
+    <div class="tags"><span class="tag">PID_CALIBRATE</span><span class="tag">M303</span></div>
+  </header>
+  <p class="desc">Do this after changing the hotend, heater, thermistor, silicone sock or part-cooling fan, and before calibrating the extruder. Start with the heater cold, use the temperature you print at most, and stay with the printer while it runs. PrintCal builds the command and checks the target against your limits; the firmware does the measuring.</p>
+  <div class="grid">
+    <label class="f">Heater<select id="pd_heater"><option value="hotend">Hotend</option><option value="bed">Heated bed</option></select></label>
+    <label class="f">Target <span class="u">°C</span><input type="number" step="1" id="pd_target" value="200"></label>
+    <label class="f" data-m-only>Cycles <span class="u">Marlin C, 3–20</span><input type="number" step="1" id="pd_cycles" value="8"></label>
+  </div>
+  <div class="out" id="out_pd"></div>
+  <div class="formula"><span><span data-k-inline><code>PID_CALIBRATE HEATER=… TARGET=…</code>, then <code>SAVE_CONFIG</code></span><span data-m-inline><code>M303 E&lt;heater&gt; S&lt;temp&gt; C&lt;cycles&gt; U1</code>, then <code>M500</code></span></span><span><a href="https://www.klipper3d.org/Config_checks.html" target="_blank" rel="noopener">Klipper docs ↗</a> · <a href="https://marlinfw.org/docs/gcode/M303.html" target="_blank" rel="noopener">Marlin M303 ↗</a></span></div>
+</section>
+
+<!-- ============ EXTRUDER ============ -->
+<section id="extruder" data-calc="ex">
+  <header>
+    <h2><small>Extruder</small><span id="ex_title">E-steps calculator</span></h2>
+    <div class="tags"><span class="tag">rotation_distance</span><span class="tag">e-steps</span><span class="tag">M92</span></div>
+  </header>
+  <p class="desc">Heat the nozzle to printing temperature first (Klipper refuses extrusion below <code>min_extrude_temp</code>, default 170 °C). Mark the filament above the extruder body and extrude <em>slowly</em> (<code>G91</code>, then <code>G1 E<span class="exreq">50</span> F60</code>). Don't use the screen's extrude button. Measure what's left. The current value is prefilled from your preset; <strong>replace it with the value your printer actually uses</strong> (<span data-k-inline>your printer.cfg</span><span data-m-inline><code>M503</code> → the <code>M92 … E</code> number</span>).</p>
+  <div class="grid">
+    <label class="f"><span id="ex_curlbl">Current e-steps</span> <span class="u" id="ex_curu">steps/mm</span><input type="number" step="any" id="ex_cur"></label>
+    <label class="f">Requested extrude <span class="u">mm</span><input type="number" step="any" id="ex_req" value="100"></label>
+    <label class="f">Initial mark distance <span class="u">mm</span><input type="number" step="any" id="ex_mark" value="120"></label>
+    <label class="f">Mark distance after <span class="u">mm</span><input type="number" step="any" id="ex_left" value="22.5"></label>
+  </div>
+  <div class="out" id="out_ex"></div>
+  <div class="formula"><span><span data-k-inline><code>new rotation_distance = current × actual ÷ requested</code></span><span data-m-inline><code>new e-steps = current × requested ÷ actual</code></span> · <code>actual = initial − after</code></span><span><a href="https://www.klipper3d.org/Rotation_Distance.html" target="_blank" rel="noopener">Klipper docs ↗</a> · <a href="https://ellis3dp.com/Print-Tuning-Guide/articles/extruder_calibration.html" target="_blank" rel="noopener">Ellis' guide ↗</a></span></div>
+</section>
+
+<!-- ============ PRESSURE ADVANCE ============ -->
+<section id="pressure-advance" data-calc="pa">
+  <header>
+    <h2><small>Corners &amp; seams</small>Pressure advance / Linear Advance</h2>
+    <div class="tags"><span class="tag">TUNING_TOWER</span><span class="tag">OrcaSlicer PA tower</span><span class="tag">M900</span></div>
+  </header>
+  <p class="desc">Find the height with the sharpest corners using calipers. If you're unsure, pick the lower one. The range is set by your mounting: direct drive uses a finer step, long bowden a bigger one.</p>
+  <div class="sub first" data-fw-only="klipper">
+    <h3>Klipper tuning tower</h3>
+    <div class="grid">
+      <label class="f">START<input type="number" step="any" id="pa_start" value="0"></label>
+      <label class="f">FACTOR <span class="u">per mm</span><input type="number" step="any" id="pa_factor" value="0.020"></label>
+      <label class="f">Best height <span class="u">mm</span><input type="number" step="any" id="pa_h" value="12.9"></label>
+    </div>
+    <div class="out" id="out_pa1"></div>
+  </div>
+  <div class="sub">
+    <h3>OrcaSlicer PA tower <span class="dim" style="font-weight:400">(works for Klipper and Marlin)</span></h3>
+    <p>The value rises one step per millimetre of height.</p>
+    <div class="grid">
+      <label class="f">Start PA<input type="number" step="any" id="po_start" value="0"></label>
+      <label class="f">Step <span class="u">per mm</span><input type="number" step="any" id="po_step" value="0.002"></label>
+      <label class="f">Best height <span class="u">mm</span><input type="number" step="any" id="po_h" value="8"></label>
+    </div>
+    <div class="out" id="out_pa2"></div>
+  </div>
+  <div class="formula"><span><code>PA = start + height × factor</code></span><span><a href="https://www.klipper3d.org/Pressure_Advance.html" target="_blank" rel="noopener">Klipper docs ↗</a> · <a href="https://www.orcaslicer.com/wiki/calibration/pressure_advance_calib.html" target="_blank" rel="noopener">OrcaSlicer wiki ↗</a></span></div>
+</section>
+
+<!-- ============ INPUT SHAPER ============ -->
+<section id="input-shaper" data-calc="is">
+  <header>
+    <h2><small>Ringing / ghosting</small>Input shaper frequency</h2>
+    <div class="tags"><span class="tag">ringing tower</span><span class="tag">SHAPER_CALIBRATE</span><span class="tag">M593</span></div>
+  </header>
+  <div id="is_adxl" data-fw-only="klipper"></div>
+  <p class="desc">Print Klipper's <code>ringing_tower.stl</code> (works for any firmware). On each axis mark, measure distance <em>D</em> spanning <em>N</em> ripples, skipping the first one or two after the notch.</p>
+  <div class="grid">
+    <label class="f">Outer-wall speed V <span class="u">mm/s</span><input type="number" step="any" id="is_v" value="100"></label>
+    <label class="f">X ripples N<input type="number" step="1" id="is_nx" value="6"></label>
+    <label class="f">X distance D <span class="u">mm</span><input type="number" step="any" id="is_dx" value="12.14"></label>
+    <label class="f">Y ripples N<input type="number" step="1" id="is_ny" value="6"></label>
+    <label class="f">Y distance D <span class="u">mm</span><input type="number" step="any" id="is_dy" value="14.2"></label>
+  </div>
+  <div class="out" id="out_is"></div>
+  <div class="sub" data-fw-only="marlin">
+    <h3>Marlin M593 frequency tower</h3>
+    <p>For the tower in Marlin's M593 docs: the slicer raises the frequency every layer with <code>M593 F{start + span × (layer − 2) ÷ layers}</code>. Measure the cleanest height.</p>
+    <div class="grid">
+      <label class="f">Cleanest height <span class="u">mm</span><input type="number" step="any" id="im_h" value="20"></label>
+      <label class="f">Layer height <span class="u">mm</span><input type="number" step="any" id="im_lh" value="0.2"></label>
+      <label class="f">Start <span class="u">Hz</span><input type="number" step="any" id="im_s" value="15"></label>
+      <label class="f">Span <span class="u">Hz</span><input type="number" step="any" id="im_sp" value="45"></label>
+      <label class="f">Layers in formula<input type="number" step="1" id="im_n" value="297"></label>
+    </div>
+    <div class="out" id="out_im"></div>
+  </div>
+  <div class="formula"><span><code>f = V × N ÷ D</code></span><span><a href="https://www.klipper3d.org/Resonance_Compensation.html" target="_blank" rel="noopener">Klipper docs ↗</a> · <a href="https://marlinfw.org/docs/gcode/M593.html" target="_blank" rel="noopener">Marlin M593 ↗</a></span></div>
+</section>
+
+<!-- ============ FLOW ============ -->
+<section id="flow-ratio" data-calc="fl">
+  <header>
+    <h2><small>Slicer</small>Flow ratio</h2>
+    <div class="tags"><span class="tag">OrcaSlicer</span><span class="tag">Bambu Studio</span><span class="tag">Cura / Prusa flow %</span></div>
+  </header>
+  <p class="desc">Do this <em>after</em> extruder calibration. Flow is per filament and lives in the slicer, not the printer. Cura and PrusaSlicer show it as a percentage (0.97 = 97 %).</p>
+  <div class="sub first">
+    <h3>OrcaSlicer 2-pass (Pass 1 = −20…+20 step 5 · Pass 2 = −9…0 step 1)</h3>
+    <div class="grid">
+      <label class="f">Current flow ratio<input type="number" step="any" id="fl_old" value="0.98"></label>
+      <label class="f">Best block modifier <span class="u">e.g. 5 or −6</span><input type="number" step="any" id="fl_mod" value="5"></label>
+    </div>
+    <div class="out" id="out_fl1"></div>
+  </div>
+  <div class="sub">
+    <h3>OrcaSlicer YOLO (2.3+)</h3>
+    <p>The modifier is added, not multiplied. Recommended range ±0.05 in 0.01 steps.</p>
+    <div class="grid">
+      <label class="f">Current flow ratio<input type="number" step="any" id="fl_yold" value="0.98"></label>
+      <label class="f">Best block modifier <span class="u">e.g. 0.02</span><input type="number" step="any" id="fl_ymod" value="0.02"></label>
+    </div>
+    <div class="out" id="out_fl2"></div>
+  </div>
+  <div class="sub">
+    <h3>Single-wall cube (any slicer)</h3>
+    <div class="grid">
+      <label class="f">Current flow ratio<input type="number" step="any" id="fl_wold" value="1.0"></label>
+      <label class="f">Target wall <span class="u">mm</span><input type="number" step="any" id="fl_wt" value="0.45"></label>
+      <label class="f span2" style="grid-column:span 2">Measured walls <span class="u">mm, comma-separated</span><input type="text" id="fl_wm" value="0.47, 0.46, 0.48, 0.47"></label>
+    </div>
+    <div class="out" id="out_fl3"></div>
+  </div>
+  <div class="formula"><span><code>2-pass: old × (100 + mod) ÷ 100</code> · <code>YOLO: old + mod</code> · <code>wall: old × target ÷ mean</code></span><a href="https://www.orcaslicer.com/wiki/calibration/flow_ratio_calib" target="_blank" rel="noopener">OrcaSlicer wiki ↗</a></div>
+</section>
+
+<!-- ============ MVS ============ -->
+<section id="max-volumetric-speed" data-calc="mv">
+  <header>
+    <h2><small>Hotend limit</small>Max volumetric speed</h2>
+    <div class="tags"><span class="tag">OrcaSlicer</span><span class="tag">mm³/s</span></div>
+  </header>
+  <p class="desc">Measure the height where OrcaSlicer's max-flowrate test first shows defects. PrintCal turns that into the fastest line speed your hotend keeps up with and compares it with your printer's <code>max_velocity</code>.</p>
+  <div class="grid">
+    <label class="f">Test start <span class="u">mm³/s</span><input type="number" step="any" id="mv_start" value="5"></label>
+    <label class="f">Step <span class="u">mm³/s per mm</span><input type="number" step="any" id="mv_step" value="0.5"></label>
+    <label class="f">Defects start at <span class="u">mm</span><input type="number" step="any" id="mv_h" value="12"></label>
+    <label class="f">Safety margin <span class="u">% (Orca: 10–20)</span><input type="number" step="any" id="mv_margin" value="15"></label>
+    <label class="f">Layer height <span class="u">mm</span><input type="number" step="any" id="mv_lh" value="0.2"></label>
+    <label class="f">Line width <span class="u">mm</span><input type="number" step="any" id="mv_lw" value="0.42"></label>
+  </div>
+  <div class="out" id="out_mv"></div>
+  <div class="formula"><span><code>MVS = start + height × step</code> · <code>area = h × (w − h(1 − π/4))</code> · <code>speed = MVS ÷ area</code></span><span><a href="https://www.orcaslicer.com/wiki/calibration/volumetric_speed_calib.html" target="_blank" rel="noopener">OrcaSlicer wiki ↗</a> · <a href="https://github.com/SoftFever/OrcaSlicer/blob/main/src/libslic3r/Flow.cpp" target="_blank" rel="noopener">Flow.cpp ↗</a></span></div>
+</section>
+
+<!-- ============ TOWERS ============ -->
+<section id="tower" data-calc="tw">
+  <header>
+    <h2><small>Temperature · retraction</small>Tower planner &amp; reader</h2>
+    <div class="tags"><span class="tag">temp tower</span><span class="tag">retraction tower</span></div>
+  </header>
+  <p class="desc">Check the tower range <em>before</em> printing: temperature towers are capped by your hotend, and retraction ranges by your mounting. Then turn a caliper height into the setting that block was printed with. For OrcaSlicer's retraction tower, confirm by searching the G-code preview for <code>Calib_Retraction_tower</code>.</p>
+  <div class="row" style="display:flex;gap:8px;margin-bottom:12px"><div class="seg" id="tw_seg"><button type="button" data-m="temp" class="on">Temperature</button><button type="button" data-m="retract">Retraction</button><button type="button" data-m="custom">Custom</button></div></div>
+  <div class="grid">
+    <label class="f">Bottom value <span class="u" id="tw_u1">°C</span><input type="number" step="any" id="tw_start" value="220"></label>
+    <label class="f">Top value <span class="u" id="tw_u2">°C</span><input type="number" step="any" id="tw_end" value="190"></label>
+    <label class="f">Change per step <span class="u">absolute</span><input type="number" step="any" id="tw_step" value="5"></label>
+    <label class="f">Step every <span class="u">mm</span><input type="number" step="any" id="tw_every" value="10"></label>
+    <label class="f">Base before first block <span class="u">mm</span><input type="number" step="any" id="tw_base" value="0"></label>
+    <label class="f">Best height <span class="u">mm</span><input type="number" step="any" id="tw_h" value="27"></label>
+  </div>
+  <div class="out" id="out_tw"></div>
+  <div class="formula"><span><code>value = bottom ± step × ⌊(h − base) ÷ every⌋</code>, clamped to the tower range</span><a href="https://www.orcaslicer.com/wiki/calibration/retraction_calib.html" target="_blank" rel="noopener">OrcaSlicer retraction ↗</a></div>
+</section>
+
+<!-- ============ SKEW ============ -->
+<section id="skew" data-calc="sk">
+  <header>
+    <h2><small>Squareness</small>Skew correction (SET_SKEW)</h2>
+    <div class="tags"><span class="tag">Klipper</span><span class="tag">skew_correction</span></div>
+  </header>
+  <p class="desc">Print a skew calibration square. Measure diagonal AC, diagonal BD and side AD, without the corner flats. <code>[skew_correction]</code> must already be in your printer.cfg.</p>
+  <div class="grid">
+    <label class="f">Diagonal AC <span class="u">mm</span><input type="number" step="any" id="sk_ac" value="140.4"></label>
+    <label class="f">Diagonal BD <span class="u">mm</span><input type="number" step="any" id="sk_bd" value="142.8"></label>
+    <label class="f">Side AD <span class="u">mm</span><input type="number" step="any" id="sk_ad" value="99.8"></label>
+    <label class="f">Plane<select id="sk_plane"><option>XY</option><option>XZ</option><option>YZ</option></select></label>
+  </div>
+  <div class="out" id="out_sk"></div>
+  <div class="formula"><span><code>side = √(2AC² + 2BD² − 4AD²) ÷ 2</code> · <code>factor = tan(π/2 − acos((AC² − side² − AD²) ÷ (2·side·AD)))</code></span><a href="https://www.klipper3d.org/Skew_Correction.html" target="_blank" rel="noopener">Klipper docs ↗</a></div>
+</section>
+
+<!-- ============ SHRINKAGE ============ -->
+<section id="shrinkage" data-calc="sh">
+  <header>
+    <h2><small>Dimensional accuracy</small>Shrinkage &amp; scale</h2>
+    <div class="tags"><span class="tag">OrcaSlicer</span><span class="tag">ABS / ASA / PETG</span></div>
+  </header>
+  <p class="desc">Measure a large calibration cube (100 mm beats 20 mm). OrcaSlicer's <em>Shrinkage (XY)</em> takes measured ÷ nominal; any slicer's per-object scale takes the inverse. Fix the extruder and flow first.</p>
+  <div class="grid">
+    <label class="f">Nominal <span class="u">mm</span><input type="number" step="any" id="sh_nom" value="100"></label>
+    <label class="f">Measured X <span class="u">mm</span><input type="number" step="any" id="sh_x" value="99.4"></label>
+    <label class="f">Measured Y <span class="u">mm</span><input type="number" step="any" id="sh_y" value="99.5"></label>
+    <label class="f">Measured Z <span class="u">mm</span><input type="number" step="any" id="sh_z" value="99.9"></label>
+  </div>
+  <div class="out" id="out_sh"></div>
+  <div class="formula"><span><code>Orca shrink % = measured ÷ nominal × 100</code> · <code>scale % = nominal ÷ measured × 100</code></span><a href="https://github.com/SoftFever/OrcaSlicer/blob/main/src/libslic3r/PrintConfig.cpp" target="_blank" rel="noopener">OrcaSlicer source ↗</a></div>
+</section>
+
+<!-- ============ AXIS ============ -->
+<section id="axis" data-calc="ax">
+  <header>
+    <h2><small>Motion</small>Axis steps (X / Y / Z)</h2>
+    <div class="tags"><span class="tag">rotation_distance</span><span class="tag">steps/mm</span><span class="tag">reference only</span></div>
+  </header>
+  <p class="desc">For a new mainboard, a fresh Klipper install or a rebuilt axis. These values come from the hardware (belt pitch × pulley teeth, or leadscrew pitch × thread starts), not from measuring test prints: Klipper's docs say not to use measure-and-trim on X, Y or Z. PrintCal shows the number to compare with your config, and doesn't generate axis config lines.</p>
+  <div class="grid">
+    <label class="f">Drive<select id="ax_type"><option value="belt">Belt (X / Y)</option><option value="screw">Leadscrew (Z)</option></select></label>
+    <label class="f" data-ax="belt">Belt pitch <span class="u">mm · GT2 = 2</span><input type="number" step="any" id="ax_pitch" value="2"></label>
+    <label class="f" data-ax="belt">Pulley teeth<input type="number" step="1" id="ax_teeth" value="20"></label>
+    <label class="f" data-ax="screw">Screw pitch <span class="u">mm between threads</span><input type="number" step="any" id="ax_spitch" value="2"></label>
+    <label class="f" data-ax="screw">Thread starts<input type="number" step="1" id="ax_starts" value="4"></label>
+    <label class="f">Axis motor<select id="ax_full"><option value="200">1.8° (200 steps/rev)</option><option value="400">0.9° (400 steps/rev)</option></select></label>
+    <label class="f">Axis microsteps<select id="ax_micro"><option>8</option><option selected>16</option><option>32</option><option>64</option><option>128</option><option>256</option></select></label>
+  </div>
+  <div class="out" id="out_ax"></div>
+  <div class="formula"><span><code>rotation_distance = belt pitch × pulley teeth</code> · <code>= screw pitch × thread starts</code> · <code>steps/mm = motor steps × microsteps ÷ rotation_distance</code></span><a href="https://www.klipper3d.org/Rotation_Distance.html" target="_blank" rel="noopener">Klipper docs ↗</a></div>
+</section>
+
+<!-- ============ FILAMENT ============ -->
+<section id="filament" data-calc="fi">
+  <header>
+    <h2><small>Will it finish?</small>Filament left on the spool</h2>
+    <div class="tags"><span class="tag">PLA</span><span class="tag">PETG</span><span class="tag">ABS</span><span class="tag">TPU</span></div>
+  </header>
+  <p class="desc">Weigh the spool, subtract the empty spool (weigh one, or check the brand's spec), and compare with the length your slicer says the print needs. Densities are typical values. Use the datasheet if you have it.</p>
+  <div class="grid">
+    <label class="f">Diameter<select id="fi_dia"><option value="1.75" selected>1.75 mm</option><option value="2.85">2.85 mm</option></select></label>
+    <label class="f">Material<select id="fi_mat"><option value="1.24" selected>PLA · 1.24</option><option value="1.27">PETG · 1.27</option><option value="1.04">ABS · 1.04</option><option value="1.07">ASA · 1.07</option><option value="1.21">TPU · 1.21</option><option value="1.20">PC · 1.20</option><option value="1.14">PA / Nylon · 1.14</option><option value="custom">Custom…</option></select></label>
+    <label class="f">Density <span class="u">g/cm³</span><input type="number" step="any" id="fi_rho" value="1.24"></label>
+    <label class="f">Spool gross <span class="u">g</span><input type="number" step="any" id="fi_gross" value="480"></label>
+    <label class="f">Empty spool <span class="u">g</span><input type="number" step="any" id="fi_empty" value="250"></label>
+    <label class="f">Print needs <span class="u">m</span><input type="number" step="any" id="fi_need" value="65"></label>
+  </div>
+  <div class="out" id="out_fi"></div>
+  <div class="formula"><span><code>length = mass ÷ (ρ × π × (d/2)²)</code></span></div>
+</section>
+
+<!-- ============ SUMMARY ============ -->
+<section id="summary">
+  <header>
+    <h2><small>Apply</small>All changes for your printer</h2>
+    <div class="tags"><span class="tag" id="sum_tag">Marlin</span></div>
+  </header>
+  <p class="desc">Everything you've calibrated above that passed its checks, gathered in one place. <strong>Back up your config first.</strong> <span data-k-inline>Edit each key inside the section you already have. Don't paste this over your file, and don't add a duplicate section. If a key also appears in the <code>#*#</code> SAVE_CONFIG block at the bottom, the value in the main section wins and the <code>#*#</code> copy is ignored, so keep only one. Then run <code>FIRMWARE_RESTART</code>.</span><span data-m-inline>Send these from a terminal (OctoPrint, Pronterface, Repetier). <code>M500</code> stores them in EEPROM. Run <code>M503</code> afterwards to confirm.</span></p>
+  <div id="out_sum"></div>
+</section>
+
+<!-- ============ REFERENCE ============ -->
+<section id="ref">
+  <header>
+    <h2><small>Reference</small>Ender extruder &amp; motion values from Klipper's official configs</h2>
+    <div class="tags"><span class="tag">Klipper3d/klipper/config</span><span class="tag">20 printers</span></div>
+  </header>
+  <p class="desc">Values taken straight from the official Klipper config for each printer. Where Klipper has none, the row says so; the Ender 3 V3 family shows Creality's published maximum acceleration instead. The steps/mm column is the Marlin equivalent at 16 microsteps on a 1.8° motor. <code>max_extrude_only_distance</code> is the longest extrude-only move Klipper accepts; Klipper uses 50 mm when the file doesn't set it. These are stock values: your own extruder still needs calibrating.</p>
+  <div class="tblwrap"><table class="t" id="prtable">
+    <thead><tr><th>Printer</th><th>rotation_distance</th><th>gear_ratio</th><th>≈ steps/mm</th><th>drive</th><th>max_temp °C</th><th>max_accel</th><th>max_extrude_only</th><th>official config</th></tr></thead>
+    <tbody>
+<tr><td>Ender 3 (2018)</td><td>33.683</td><td>—</td><td>95.0</td><td>bowden</td><td>250</td><td>3000</td><td>100</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3-2018.cfg" target="_blank" rel="noopener">printer-creality-ender3-2018.cfg</a></td></tr>
+<tr><td>Ender 3 Pro</td><td>34.406</td><td>—</td><td>93.0</td><td>bowden</td><td>250</td><td>3000</td><td>100</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3pro-2020.cfg" target="_blank" rel="noopener">printer-creality-ender3pro-2020.cfg</a></td></tr>
+<tr><td>Ender 3 V2</td><td>34.406</td><td>—</td><td>93.0</td><td>bowden</td><td>250</td><td>3000</td><td>100</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3-v2-2020.cfg" target="_blank" rel="noopener">printer-creality-ender3-v2-2020.cfg</a></td></tr>
+<tr><td>Ender 3 Neo</td><td>34.406</td><td>—</td><td>93.0</td><td>bowden</td><td>250</td><td>3000</td><td>100</td><td><span class="dim">none (borrowed: Ender 3 Pro)</span></td></tr>
+<tr><td>Ender 3 V2 Neo</td><td>34.406</td><td>—</td><td>93.0</td><td>bowden</td><td>250</td><td>5000</td><td>100</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3-v2-neo-2022.cfg" target="_blank" rel="noopener">printer-creality-ender3-v2-neo-2022.cfg</a></td></tr>
+<tr><td>Ender 3 Max</td><td>31.901</td><td>—</td><td>100.3</td><td>bowden</td><td>250</td><td>3000</td><td>100</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3max-2021.cfg" target="_blank" rel="noopener">printer-creality-ender3max-2021.cfg</a></td></tr>
+<tr><td>Ender 3 S1</td><td>26.359</td><td>42:12</td><td>424.9</td><td>direct</td><td>260</td><td>2000</td><td>50</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3-s1-2021.cfg" target="_blank" rel="noopener">printer-creality-ender3-s1-2021.cfg</a></td></tr>
+<tr><td>Ender 3 S1 Pro</td><td>26.359</td><td>42:12</td><td>424.9</td><td>direct</td><td>260</td><td>2000</td><td>50</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3-s1-2021.cfg" target="_blank" rel="noopener">printer-creality-ender3-s1-2021.cfg</a></td></tr>
+<tr><td>Ender 3 S1 Plus</td><td>26.359</td><td>42:12</td><td>424.9</td><td>direct</td><td>260</td><td>2000</td><td>50</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3-s1plus-2022.cfg" target="_blank" rel="noopener">printer-creality-ender3-s1plus-2022.cfg</a></td></tr>
+<tr><td>Ender 3 V3 SE</td><td>—</td><td>—</td><td>—</td><td>direct</td><td>—</td><td>2500</td><td>—</td><td><span class="dim">none</span> · <a href="https://creality.com/compare/compare-ender-3-v3-series" target="_blank" rel="noopener">maker specs</a></td></tr>
+<tr><td>Ender 3 V3 KE</td><td>—</td><td>—</td><td>—</td><td>direct</td><td>—</td><td>8000</td><td>—</td><td><span class="dim">none</span> · <a href="https://creality.com/compare/compare-ender-3-v3-series" target="_blank" rel="noopener">maker specs</a></td></tr>
+<tr><td>Ender 3 V3 (CoreXZ)</td><td>—</td><td>—</td><td>—</td><td>direct</td><td>—</td><td>20000</td><td>—</td><td><span class="dim">none</span> · <a href="https://creality.com/compare/compare-ender-3-v3-series" target="_blank" rel="noopener">maker specs</a></td></tr>
+<tr><td>Ender 3 V3 Plus</td><td>—</td><td>—</td><td>—</td><td>direct</td><td>—</td><td>20000</td><td>—</td><td><span class="dim">none</span> · <a href="https://creality.com/compare/compare-ender-3-v3-series" target="_blank" rel="noopener">maker specs</a></td></tr>
+<tr><td>Ender 5 (2019)</td><td>33.683</td><td>—</td><td>95.0</td><td>bowden</td><td>250</td><td>3000</td><td>100</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender5-2019.cfg" target="_blank" rel="noopener">printer-creality-ender5-2019.cfg</a></td></tr>
+<tr><td>Ender 5 Pro</td><td>32.342</td><td>—</td><td>98.9</td><td>bowden</td><td>260</td><td>3000</td><td>100</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender5pro-2020.cfg" target="_blank" rel="noopener">printer-creality-ender5pro-2020.cfg</a></td></tr>
+<tr><td>Ender 5 Plus</td><td>33.683</td><td>—</td><td>95.0</td><td>bowden</td><td>260</td><td>2500</td><td>50</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender5plus-2019.cfg" target="_blank" rel="noopener">printer-creality-ender5plus-2019.cfg</a></td></tr>
+<tr><td>Ender 5 S1</td><td>7.5</td><td>—</td><td>426.7</td><td>direct</td><td>305</td><td>5000</td><td>50</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender5-s1-2023.cfg" target="_blank" rel="noopener">printer-creality-ender5-s1-2023.cfg</a></td></tr>
+<tr><td>Ender 6</td><td>22.857</td><td>—</td><td>140.0</td><td>bowden</td><td>260</td><td>2000</td><td>1000</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender6-2020.cfg" target="_blank" rel="noopener">printer-creality-ender6-2020.cfg</a></td></tr>
+<tr><td>Ender 2 (2017)</td><td>34.41</td><td>—</td><td>93.0</td><td>bowden</td><td>250</td><td>1500</td><td>500</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender2-2017.cfg" target="_blank" rel="noopener">printer-creality-ender2-2017.cfg</a></td></tr>
+<tr><td>Ender 2 Pro</td><td>27.53480577</td><td>—</td><td>116.2</td><td>bowden</td><td>260</td><td>3000</td><td>100</td><td><a href="https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender2pro-2021.cfg" target="_blank" rel="noopener">printer-creality-ender2pro-2021.cfg</a></td></tr>
+    </tbody>
+  </table></div>
+  <div class="sub">
+    <h3>Extruder upgrade starting values (16 microsteps, 1.8° motor)</h3>
+    <div class="tblwrap"><table class="t" id="extable"><thead><tr><th>Extruder</th><th>drive</th><th>steps/mm</th><th>rotation_distance</th><th>with gear_ratio</th><th>source</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="faq" id="faq">
+  <header><h2><small>Questions</small>FAQ</h2></header>
+  <details><summary>What is the Ender 3 V2 / Ender 3 Pro rotation_distance in Klipper?</summary><p>Klipper's official configs for both use <code>rotation_distance: 34.406</code> for the stock extruder, about 93 steps/mm. Treat it as a starting point and calibrate with the extruder section above.</p></details>
+  <details><summary>What's the Ender 3 S1 rotation_distance and gear_ratio?</summary><p>The official S1 config uses <code>rotation_distance: 26.359</code> with <code>gear_ratio: 42:12</code> (about 424.9 steps/mm). Without the gear_ratio line the equivalent value is about 7.53. Keep the pair together.</p></details>
+  <details><summary>I put a Sprite Extruder SE on my Ender 3 Neo. What do I change?</summary><p>Pick <em>Ender 3 Neo</em> and <em>Creality Sprite Extruder SE</em> in the setup. Creality's manual gives 424.9 e-steps. In Klipper that's <code>gear_ratio: 42:12</code> + <code>rotation_distance: 26.359</code> (or 7.531 with no gear_ratio line). Add the gear_ratio line if your old bowden config didn't have one, or extrusion will be about 3.5× too low. Then check direction, cut retraction below 3 mm, redo pressure advance and re-measure probe offsets.</p></details>
+  <details><summary>I installed a Micro Swiss NG / Orbiter / BMG. What should I start with?</summary><p>Choose it under <em>Extruder</em> in the setup. PrintCal fills in the manufacturer's starting value (NG 400, Orbiter v2.0 690, BMG 415 steps/mm) and converts it for Klipper. Then run the extruder test.</p></details>
+  <details><summary>What are the Ender 3 X, Y and Z rotation_distance values?</summary><p>Every official Klipper Ender config uses <code>rotation_distance: 40</code> for X and Y (2 mm GT2 belt × 20-tooth pulley, 80 steps/mm) and <code>8</code> for Z (400 steps/mm). The Ender 5 Pro and Ender 5 Plus use <code>4</code> for Z (800 steps/mm). They come from the hardware, so don't calibrate them from test prints.</p></details>
+  <details><summary>Why did PrintCal block my result?</summary><p>Results that move the setting by more than 25 %, exceed your hotend's temperature cap, or fall outside documented ranges (pressure advance above 1.0, for example) usually mean a measurement or mechanical problem. A slipping extruder, a partial clog or the wrong gear_ratio are typical. Fix the cause and re-measure. You can still override if you're sure.</p></details>
+  <details><summary>Can I tune input shaping on a stock Ender without an accelerometer?</summary><p>On Klipper, yes: use the ringing tower. On Marlin, input shaping needs firmware built with INPUT_SHAPING (Marlin 2.1.2+). Send <code>M593</code>: if it replies "Unknown command", your firmware doesn't have it.</p></details>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <strong>Sources</strong>
+    <ul>
+      <li>Printer presets: <a href="https://github.com/Klipper3d/klipper/tree/master/config" target="_blank" rel="noopener">Klipper official printer configs</a>. Formulas: Klipper docs on <a href="https://www.klipper3d.org/Rotation_Distance.html" target="_blank" rel="noopener">rotation distance</a>, <a href="https://www.klipper3d.org/Pressure_Advance.html" target="_blank" rel="noopener">pressure advance</a>, <a href="https://www.klipper3d.org/Resonance_Compensation.html" target="_blank" rel="noopener">resonance compensation</a>, <a href="https://www.klipper3d.org/Skew_Correction.html" target="_blank" rel="noopener">skew correction</a></li>
+      <li>Extruder values: Creality, Micro Swiss, Bondtech, E3D, LDO, Annex and BIQU documentation (each linked in the reference table)</li>
+      <li><a href="https://www.orcaslicer.com/wiki/calibration/flow_ratio_calib" target="_blank" rel="noopener">OrcaSlicer calibration wiki</a> and source · <a href="https://marlinfw.org/docs/gcode/M593.html" target="_blank" rel="noopener">Marlin M593</a> · <a href="https://ellis3dp.com/Print-Tuning-Guide/" target="_blank" rel="noopener">Ellis' Print Tuning Guide</a></li>
+    </ul>
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+      <span>PrintCal · made by <strong>Vidom</strong> · free, no tracking, values saved only in your browser. Always back up your config before changing it.</span>
+      <button id="resetAll" type="button">Reset everything</button>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite">Copied</div>
+</footer>
+
+<script>
+/* =============================================================================
+   PrintCal — CUSTOMIZE HERE
+   Everything PrintCal knows about printers, extruders and safety limits is in
+   this block. Edit, save, reload. Mistakes don't break the page: a bad entry is
+   skipped and listed in a red box at the top, so you can see what to fix.
+   (A syntax error, such as a missing comma, stops this whole block; the red box
+   then says so, and the browser console (F12) shows the line. Don't type a
+   closing script tag inside any text here: the browser ends this block at it.)
+
+   PRINTERS — one line per printer. Only id and name are required.
+     id        unique, letters/digits/-/_            "ender3v2"
+     name      shown in the dropdown                 "Ender 3 V2"
+     fam       dropdown group (default "Other")      "Ender 3"
+     cfg       official Klipper config file name, or a full https:// link; null if none
+     borrow    if cfg is null: which printer the values were borrowed from (shown in the table)
+     rd        stock extruder rotation_distance (Klipper); null if unknown
+     gear      stock gear_ratio, "a:b" or "a:b, c:d"; null if none (needs rd)
+     maxT      hotend max_temp °C        accel  max_accel mm/s²
+     vel       max_velocity mm/s         meo    max_extrude_only_distance mm
+     z         Z rotation_distance       bedT   heated-bed max_temp °C
+     ratedT    maker's nozzle temperature rating °C (used as the tower cap for an
+               all-metal stock hotend when max_temp isn't known)
+               (each a positive number, or null if unknown)
+     spec      https:// link to the maker's spec page, when there is no cfg
+     kin       kinematics label          "cartesian" | "corexy" | "corexz" …
+     drive     stock mounting            "bowden" | "direct"       (default bowden)
+     hot       stock hotend              "ptfe" | "allmetal"       (default ptfe)
+     fw        stock firmware            "marlin" | "marlin212" | "klipper" | "crealityos"  (default marlin)
+     note      text shown under the setup when this printer is picked
+
+   EXTRUDERS — one line per extruder. Only id and name are required.
+     The entry with id "stock" must stay: it means "use the printer preset".
+     grp       dropdown group (default "Other")
+     esteps    maker's steps/mm at 16 microsteps on a 1.8° motor; null = user enters their own
+     drive     "bowden" | "direct" | "either"   (default either; picking it sets the Mounting field)
+     gear      gear_ratio for Klipper, "a:b" or "a:b, c:d" (needs esteps)
+     gearRd    rotation_distance to use WITH that gear_ratio, if the maker publishes one
+               (otherwise computed: 3200 × ratio ÷ esteps)
+     defaultGear  true = tick the gear_ratio box when this extruder is picked (needs gear)
+     retractMax   maker's retraction limit in mm (retraction tower warns above it)
+     hot       "ptfe" | "allmetal": set the Hotend field when this extruder is picked
+               (for kits that include their own hotend)
+     note      text shown in setup     src / srcName   link + label for the reference table
+   ============================================================================= */
+
+const DEFAULT_PRINTER = 'ender3v2';   // printer selected on a first visit
+
+const LIMITS = {                       // see the "Safety limits" table on the page
+  EX_WARN: 0.10,              // extruder correction > 10 % → warning
+  EX_BLOCK: 0.25,             // extruder correction > 25 % → blocked
+  NOMINAL_MISMATCH: 0.25,     // current value vs preset > 25 % apart → warning
+  PTFE_CAP_C: 240,            // temperature cap for PTFE-lined hotends (common guideline)
+  OVERSHOOT_C: 15,            // headroom below max_temp (mirrors Marlin's HOTEND_OVERSHOOT default)
+  PA_MAX: 1.0,                // Klipper docs: typical pressure advance 0.050–1.000
+  PA_DD_WARN: 0.2,            // pressure advance warning on direct drive
+  IS_MIN: 15, IS_LOW: 25, IS_MAX: 150,          // input shaper Hz: block below/above, warn below IS_LOW
+  RETRACT_DD_WARN: 2.0, RETRACT_BOWDEN_WARN: 7.0, // retraction tower warnings, mm
+  FLOW_LO: 0.85, FLOW_HI: 1.15,                 // flow ratio warning band
+  SKEW_WARN_DEG: 1,           // skew warning, degrees out of square
+  SCALE_WARN_PCT: 3,          // shrinkage: scale correction warning, %
+  XY_DIFF_WARN_PCT: 0.3,      // shrinkage: X vs Y difference warning, %
+  BED_CAP_C: 110,             // highest bed target PrintCal will build a PID command for
+};
+
+const PRINTERS = [
+  {"id": "ender3", "name": "Ender 3 (2018)", "fam": "Ender 3", "cfg": "printer-creality-ender3-2018.cfg", "z": 8, "bedT": 130, "rd": 33.683, "gear": null, "maxT": 250, "accel": 3000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender3pro", "name": "Ender 3 Pro", "fam": "Ender 3", "cfg": "printer-creality-ender3pro-2020.cfg", "z": 8, "bedT": 130, "rd": 34.406, "gear": null, "maxT": 250, "accel": 3000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender3v2", "name": "Ender 3 V2", "fam": "Ender 3", "cfg": "printer-creality-ender3-v2-2020.cfg", "z": 8, "bedT": 130, "rd": 34.406, "gear": null, "maxT": 250, "accel": 3000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender3neo", "name": "Ender 3 Neo", "fam": "Ender 3", "cfg": null, "borrow": "Ender 3 Pro", "z": 8, "bedT": 130, "rd": 34.406, "gear": null, "maxT": 250, "accel": 3000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin", "note": "Klipper has no official Ender 3 Neo config. PrintCal borrows the Ender 3 Pro values (same stock MK8 bowden extruder class). Read your real values with M503 or from your printer.cfg."},
+  {"id": "ender3v2neo", "name": "Ender 3 V2 Neo", "fam": "Ender 3", "cfg": "printer-creality-ender3-v2-neo-2022.cfg", "z": 8, "bedT": 130, "rd": 34.406, "gear": null, "maxT": 250, "accel": 5000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender3max", "name": "Ender 3 Max", "fam": "Ender 3", "cfg": "printer-creality-ender3max-2021.cfg", "z": 8, "bedT": 130, "rd": 31.901, "gear": null, "maxT": 250, "accel": 3000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender3s1", "name": "Ender 3 S1", "fam": "Ender 3", "cfg": "printer-creality-ender3-s1-2021.cfg", "z": 8, "bedT": 100, "rd": 26.359, "gear": "42:12", "maxT": 260, "accel": 2000, "vel": 300, "meo": 50, "kin": "cartesian", "drive": "direct", "hot": "ptfe", "fw": "marlin", "note": "Hotend defaults to the conservative PTFE-lined 240 °C cap. Switch to all-metal only if you know yours is."},
+  {"id": "ender3s1pro", "name": "Ender 3 S1 Pro", "fam": "Ender 3", "cfg": "printer-creality-ender3-s1-2021.cfg", "z": 8, "bedT": 100, "rd": 26.359, "gear": "42:12", "maxT": 260, "accel": 2000, "vel": 300, "meo": 50, "kin": "cartesian", "drive": "direct", "hot": "allmetal", "fw": "marlin", "note": "Klipper's official S1 config covers the S1 and S1 Pro and sets max_temp 260. Raise it in your own config only if your hotend is rated higher."},
+  {"id": "ender3s1plus", "name": "Ender 3 S1 Plus", "fam": "Ender 3", "cfg": "printer-creality-ender3-s1plus-2022.cfg", "z": 8, "bedT": 100, "rd": 26.359, "gear": "42:12", "maxT": 260, "accel": 2000, "vel": 300, "meo": 50, "kin": "cartesian", "drive": "direct", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender3v3se", "name": "Ender 3 V3 SE", "fam": "Ender 3", "cfg": null, "spec": "https://creality.com/compare/compare-ender-3-v3-series", "rd": null, "gear": null, "maxT": null, "ratedT": 260, "accel": 2500, "vel": 250, "meo": null, "kin": "cartesian", "drive": "direct", "hot": "ptfe", "fw": "marlin", "note": "No official Klipper config. Speed, acceleration and the 260 °C nozzle rating are Creality's published specs. Read your current e-steps with M503 before calibrating."},
+  {"id": "ender3v3ke", "name": "Ender 3 V3 KE", "fam": "Ender 3", "cfg": null, "spec": "https://creality.com/compare/compare-ender-3-v3-series", "rd": null, "gear": null, "maxT": null, "ratedT": 300, "accel": 8000, "vel": 500, "meo": null, "kin": "cartesian", "drive": "direct", "hot": "allmetal", "fw": "crealityos", "note": "Runs Creality OS (Klipper-based) and has no official upstream config. Speed, acceleration and the 300 °C nozzle rating are Creality's published specs. Read rotation_distance and max_temp from your printer.cfg, and back the file up before editing."},
+  {"id": "ender3v3", "name": "Ender 3 V3 (CoreXZ)", "fam": "Ender 3", "cfg": null, "spec": "https://creality.com/compare/compare-ender-3-v3-series", "rd": null, "gear": null, "maxT": null, "ratedT": 300, "accel": 20000, "vel": 600, "meo": null, "kin": "corexz", "drive": "direct", "hot": "allmetal", "fw": "crealityos", "note": "Runs Creality OS (Klipper-based) and has no official upstream config. Speed, acceleration and the 300 °C nozzle rating are Creality's published specs. Read rotation_distance and max_temp from your printer.cfg, and back the file up before editing."},
+  {"id": "ender3v3plus", "name": "Ender 3 V3 Plus", "fam": "Ender 3", "cfg": null, "spec": "https://creality.com/compare/compare-ender-3-v3-series", "rd": null, "gear": null, "maxT": null, "ratedT": 300, "accel": 20000, "vel": 600, "meo": null, "kin": "corexz", "drive": "direct", "hot": "allmetal", "fw": "crealityos", "note": "Runs Creality OS (Klipper-based) and has no official upstream config. Speed, acceleration and the 300 °C nozzle rating are Creality's published specs. Read rotation_distance and max_temp from your printer.cfg, and back the file up before editing."},
+  {"id": "ender5", "name": "Ender 5 (2019)", "fam": "Ender 5", "cfg": "printer-creality-ender5-2019.cfg", "z": 8, "bedT": 130, "rd": 33.683, "gear": null, "maxT": 250, "accel": 3000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender5pro", "name": "Ender 5 Pro", "fam": "Ender 5", "cfg": "printer-creality-ender5pro-2020.cfg", "z": 4, "bedT": 135, "rd": 32.342, "gear": null, "maxT": 260, "accel": 3000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender5plus", "name": "Ender 5 Plus", "fam": "Ender 5", "cfg": "printer-creality-ender5plus-2019.cfg", "z": 4, "bedT": 130, "rd": 33.683, "gear": null, "maxT": 260, "accel": 2500, "vel": 300, "meo": 50, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender5s1", "name": "Ender 5 S1", "fam": "Ender 5", "cfg": "printer-creality-ender5-s1-2023.cfg", "z": 8, "bedT": 110, "rd": 7.5, "gear": null, "maxT": 305, "accel": 5000, "vel": 300, "meo": 50, "kin": "cartesian", "drive": "direct", "hot": "allmetal", "fw": "marlin"},
+  {"id": "ender6", "name": "Ender 6", "fam": "Other", "cfg": "printer-creality-ender6-2020.cfg", "z": 8, "bedT": 100, "rd": 22.857, "gear": null, "maxT": 260, "accel": 2000, "vel": 500, "meo": 1000, "kin": "corexy", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender2", "name": "Ender 2 (2017)", "fam": "Other", "cfg": "printer-creality-ender2-2017.cfg", "z": 8, "bedT": 100, "rd": 34.41, "gear": null, "maxT": 250, "accel": 1500, "vel": 300, "meo": 500, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"},
+  {"id": "ender2pro", "name": "Ender 2 Pro", "fam": "Other", "cfg": "printer-creality-ender2pro-2021.cfg", "z": 8, "bedT": 80, "rd": 27.53480577, "gear": null, "maxT": 260, "accel": 3000, "vel": 300, "meo": 100, "kin": "cartesian", "drive": "bowden", "hot": "ptfe", "fw": "marlin"}
+];
+
+const EXTRUDERS = [
+  {"id": "stock", "grp": "Stock", "name": "Stock extruder (from the printer preset)", "esteps": null, "drive": null},
+  {"id": "mk8", "grp": "Creality", "name": "Creality MK8 bowden (stock Ender 3 / Pro / V2 / Neo)", "esteps": 93, "drive": "bowden", "src": "https://github.com/Klipper3d/klipper/blob/master/config/printer-creality-ender3-v2-2020.cfg", "srcName": "Klipper Ender 3 V2 config (34.406 ≈ 93 steps/mm)"},
+  {"id": "creality_dd", "grp": "Creality", "name": "Creality Direct Drive Upgrade Kit (MK8 + 42-40 motor)", "esteps": 93, "drive": "direct", "src": "https://m.reach.dog/shop/dawnblade/products/creality-direct-drive-extruder-upgrade-kit-for-ender-3-ender-3s-ender-3-pro-comes-with-mk8-extruder-hotend-kit-42-40-stepper-motor-fan-v-slot-backplate-cable", "srcName": "Creality kit listing (MK8 extruder, so the stock 93 is the start value)", "note": "Same MK8 drive gear as the stock bowden extruder, so e-steps stay near 93. Only mounting and retraction change."},
+  {"id": "sprite_se", "defaultGear": true, "grp": "Creality", "name": "Creality Sprite Extruder SE (incl. Neo-series kit)", "esteps": 424.9, "gear": "42:12", "gearRd": 26.359, "drive": "direct", "retractMax": 3, "src": "https://artline.ua/api/client/get-product-file/16925/%D0%86%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%86%D1%96%D1%8F%20%D0%BF%D0%BE%20%D0%B2%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BB%D0%B5%D0%BD%D0%BD%D1%8E%20Sprite%20SE%20Neo", "srcName": "Creality Sprite Extruder Kit (Neo Series) manual", "note": "Creality's manual: set e-steps to 424.9 as a reference value and keep retraction under 3 mm. It's a 3.5:1 geared extruder (gear_ratio 42:12 in Klipper)."},
+  {"id": "sprite_pro", "hot": "allmetal", "defaultGear": true, "grp": "Creality", "name": "Creality Sprite Extruder Pro kit (all-metal)", "esteps": 424.9, "gear": "42:12", "gearRd": 26.359, "drive": "direct", "retractMax": 3, "src": "https://manuals.plus/m/9bab1b14bd3af3017f91b625606384f1fc2b9a652aeb816882249b0cc4243eb8", "srcName": "Creality Sprite Extruder Pro Kit manual", "note": "Creality's manual: e-steps 424.9 as a reference value. Same 42:12 gearing as the Ender 3 S1's Sprite."},
+  {"id": "ms_dd", "grp": "Micro Swiss", "name": "Micro Swiss Direct Drive (original)", "esteps": 130, "drive": "direct", "src": "https://cdn.shopify.com/s/files/1/1210/0176/files/Micro_Swiss_Direct_Drive_Extruder_Installation_Instructions.pdf", "srcName": "Micro Swiss install guide"},
+  {"id": "ms_ng", "grp": "Micro Swiss", "name": "Micro Swiss NG Direct Drive", "esteps": 400, "drive": "direct", "src": "https://cdn.shopify.com/s/files/1/1210/0176/files/M3207_NG_Installation_Ender-3_Neo.pdf", "srcName": "Micro Swiss NG install guide (Ender 3 Neo)"},
+  {"id": "ms_bowden", "grp": "Micro Swiss", "name": "Micro Swiss dual-gear bowden extruder", "esteps": 130, "drive": "bowden", "src": "https://cdn.shopify.com/s/files/1/1210/0176/files/Micro_Swiss_Bowden_Extruder_INSTALLATION_INSTRUCTIONS.pdf", "srcName": "Micro Swiss bowden install guide"},
+  {"id": "bmg", "grp": "Bondtech", "name": "Bondtech BMG (or BMG clone)", "esteps": 415, "gear": "50:17", "drive": "either", "src": "https://www.bondtech.se/product/bmg-extruder/", "srcName": "Bondtech BMG product page", "note": "Clones often differ slightly from genuine Bondtech gears, so the extrusion test matters more than the starting value."},
+  {"id": "ddx", "grp": "Bondtech", "name": "Bondtech DDX (direct drive for Creality)", "esteps": 415, "gear": "50:17", "drive": "direct", "src": "https://www.bondtech.se/product/ddx-direct-drive-extruder-for-creality-3d-printers/", "srcName": "Bondtech DDX page"},
+  {"id": "lgx", "grp": "Bondtech", "name": "Bondtech LGX", "esteps": 400, "gear": "44:14, 37:17", "drive": "either", "src": "https://www.bondtech.se/product-category/extruders/lgx-series/", "srcName": "Bondtech LGX series page"},
+  {"id": "lgxlite", "grp": "Bondtech", "name": "Bondtech LGX Lite", "esteps": 562, "gear": "44:10, 37:17", "gearRd": 55, "drive": "direct", "retractMax": 3, "src": "https://www.bondtech.se/?p=43545", "srcName": "Bondtech LGX Lite page", "note": "Bondtech: direct-drive retraction 0.4 mm for rigid filament, 3 mm for soft; about 5 mm on bowden."},
+  {"id": "hemera", "grp": "E3D", "name": "E3D Hemera", "esteps": 409, "drive": "direct", "src": "https://cdn.shopify.com/s/files/1/0239/9287/files/Hermes_Datasheet__Edition_1.pdf", "srcName": "E3D Hemera datasheet", "note": "E3D: the geared drive turns the opposite way to many stock extruders, so check the extrusion direction first."},
+  {"id": "hemera_xs", "grp": "E3D", "name": "E3D Hemera XS", "esteps": 397, "drive": "direct", "src": "https://e3d-online.com/pages/hemera-xs-datasheet", "srcName": "E3D Hemera XS datasheet"},
+  {"id": "orbiter2", "grp": "LDO / Annex", "name": "LDO Orbiter v2.0", "esteps": 690, "drive": "direct", "src": "https://cdn.shopify.com/s/files/1/0080/3920/2852/files/Orbiterv20FirmwareConfiguration-031c.pdf", "srcName": "Orbiter v2.0 firmware configuration", "note": "LDO's configuration suggests firmware retraction of 1.5 mm."},
+  {"id": "sherpa10", "defaultGear": true, "grp": "LDO / Annex", "name": "Sherpa Mini (10-tooth motor gear)", "esteps": 705.5, "gear": "50:10", "gearRd": 22.67895, "drive": "direct", "src": "https://github.com/Annex-Engineering/Sherpa_Mini-Extruder/blob/master/Klipper_Config_Block.txt", "srcName": "Annex Sherpa Mini Klipper block"},
+  {"id": "sherpa8", "defaultGear": true, "grp": "LDO / Annex", "name": "Sherpa Mini (8-tooth motor gear)", "esteps": 881.9, "gear": "50:8", "gearRd": 22.67895, "drive": "direct", "src": "https://github.com/Annex-Engineering/Sherpa_Mini-Extruder/blob/master/Klipper_Config_Block.txt", "srcName": "Annex Sherpa Mini Klipper block"},
+  {"id": "h2", "grp": "BIQU", "name": "BIQU H2 / H2 V2S", "esteps": 932, "gear": "7:1", "drive": "direct", "src": "https://manualmachine.com/biqu/h2v2s/27999168-user-guide/", "srcName": "BIQU H2 V2S user guide"},
+  {"id": "titan", "grp": "E3D", "name": "E3D Titan / Titan Aero", "esteps": 418.5, "gear": "3:1", "drive": "either", "src": "https://e3d-online.zendesk.com/hc/en-us/article_attachments/4404475505809", "srcName": "E3D: Extruder steps per mm (Titan)", "note": "E3D gives 837 steps/mm for a 0.9° motor at 16 microsteps (7.3 mm hobb, 3:1 gears), so 418.5 for a 1.8° motor. Pick your motor type in setup."},
+  {"id": "cw2", "defaultGear": true, "grp": "Voron", "name": "Voron Clockwork 2 (Stealthburner / Mini-SB)", "esteps": 705.5, "gear": "50:10", "gearRd": 22.6789511, "drive": "direct", "src": "https://github.com/VoronDesign/Voron-2/blob/Voron2.4/firmware/klipper_configurations/Octopus/Voron2_Octopus_Config.cfg", "srcName": "Voron 2.4 Klipper config", "note": "Voron's config: rotation_distance 22.6789511 with gear_ratio 50:10 for Stealthburner / Clockwork 2 (use 50:17 for the older Afterburner / Clockwork 1, which is the BMG entry)."},
+  {"id": "custom", "grp": "Other", "name": "Other / custom extruder", "esteps": null, "drive": "either"}
+];
+</script>
+
+<script>
+/* ======================================================================
+   PrintCal v3.2 — main code. You shouldn't need to edit below this line.
+   ====================================================================== */
+const STORAGE_KEY = 'printcal.v3';
+const DATA_ERRORS = [];
+if (typeof PRINTERS === 'undefined' || typeof EXTRUDERS === 'undefined' || typeof LIMITS === 'undefined' || typeof DEFAULT_PRINTER === 'undefined') {
+  const box = document.getElementById('dataErr');
+  box.hidden = false;
+  box.innerHTML = '<span class="ic">✕</span><span><b>The CUSTOMIZE HERE block in index.html has a syntax error</b> (often a missing comma, quote or bracket), so PrintCal can\'t start. Open the browser console (F12) to see the line number.</span>';
+  throw new Error('PrintCal: customize block failed to load');
+}
+
+const MAXT_MIN = 150, MAXT_MAX = 500;   // accepted range for the max_temp field
+/* ---------- limits: user values, checked against the built-in defaults ---------- */
+const LIMIT_DEFAULTS = { EX_WARN: 0.10, EX_BLOCK: 0.25, NOMINAL_MISMATCH: 0.25, PTFE_CAP_C: 240, OVERSHOOT_C: 15, PA_MAX: 1.0, PA_DD_WARN: 0.2,
+  IS_MIN: 15, IS_LOW: 25, IS_MAX: 150, RETRACT_DD_WARN: 2.0, RETRACT_BOWDEN_WARN: 7.0, FLOW_LO: 0.85, FLOW_HI: 1.15,
+  SKEW_WARN_DEG: 1, SCALE_WARN_PCT: 3, XY_DIFF_WARN_PCT: 0.3, BED_CAP_C: 110 };
+const LIM = (() => {
+  const L = { ...LIMIT_DEFAULTS };
+  const src = (LIMITS && typeof LIMITS === 'object') ? LIMITS : {};
+  for (const k in src) {
+    if (!(k in LIMIT_DEFAULTS)) { DATA_ERRORS.push(`LIMITS.${k}: unknown setting, ignored.`); continue; }
+    if (typeof src[k] === 'number' && Number.isFinite(src[k]) && src[k] > 0) L[k] = src[k];
+    else DATA_ERRORS.push(`LIMITS.${k}: must be a positive number. Using the default (${LIMIT_DEFAULTS[k]}).`);
+  }
+  const order = [['EX_WARN', 'EX_BLOCK'], ['IS_MIN', 'IS_LOW'], ['IS_LOW', 'IS_MAX'], ['FLOW_LO', 'FLOW_HI'], ['PA_DD_WARN', 'PA_MAX']];
+  for (const [a, b] of order) if (!(L[a] < L[b])) {
+    DATA_ERRORS.push(`LIMITS.${a} must be smaller than LIMITS.${b}. Using the defaults for both.`);
+    L[a] = LIMIT_DEFAULTS[a]; L[b] = LIMIT_DEFAULTS[b];
+  }
+  if (!(L.OVERSHOOT_C < MAXT_MIN)) { DATA_ERRORS.push(`LIMITS.OVERSHOOT_C must be below ${MAXT_MIN}. Using the default.`); L.OVERSHOOT_C = LIMIT_DEFAULTS.OVERSHOOT_C; }
+  if (!(L.FLOW_LO < 1 && L.FLOW_HI > 1)) { DATA_ERRORS.push('LIMITS.FLOW_LO must be below 1 and FLOW_HI above 1. Using the defaults.'); L.FLOW_LO = LIMIT_DEFAULTS.FLOW_LO; L.FLOW_HI = LIMIT_DEFAULTS.FLOW_HI; }
+  return L;
+})();
+const { EX_WARN, EX_BLOCK, NOMINAL_MISMATCH, PTFE_CAP_C, OVERSHOOT_C, PA_MAX, PA_DD_WARN, IS_MIN, IS_LOW, IS_MAX,
+        RETRACT_DD_WARN, RETRACT_BOWDEN_WARN, FLOW_LO, FLOW_HI, SKEW_WARN_DEG, SCALE_WARN_PCT, XY_DIFF_WARN_PCT, BED_CAP_C } = LIM;
+
+const KCFG = 'https://github.com/Klipper3d/klipper/blob/master/config/';
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const n = id => { const el = $(id); if (!el) return NaN; const v = parseFloat(String(el.value).replace(',', '.')); return Number.isFinite(v) ? v : NaN; };
+const ok = (...v) => v.every(Number.isFinite);
+const f  = (v, d) => Number.isFinite(v) ? (Math.round(v * 10 ** d) / 10 ** d).toFixed(d) : '—';
+const ft = (v, d) => Number.isFinite(v) ? String(+v.toFixed(d)) : '—';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const gearRatio = s => !s ? 1 : s.split(',').reduce((r, p) => { const [a, b] = p.split(':').map(Number); return r * a / b; }, 1);
+const byId = (arr, id) => arr.find(x => x.id === id);
+
+const big = (k, v, unit = '', cls = '') => `<div class="big ${cls}"><div class="k">${k}</div><div class="v">${v}${unit ? ` <small>${unit}</small>` : ''}</div></div>`;
+const M = {
+  ok:    t => `<div class="msg ok"><span class="ic">OK</span><span>${t}</span></div>`,
+  warn:  t => `<div class="msg warn"><span class="ic">!</span><span>${t}</span></div>`,
+  block: t => `<div class="msg block"><span class="ic">✕</span><span>${t}</span></div>`,
+  note:  t => `<div class="msg"><span class="ic">i</span><span>${t}</span></div>`,
+};
+function code(text, cap) {
+  const body = esc(text).replace(/^([#;].*)$/gm, '<span class="cmt">$1</span>').replace(/(\s;.*)$/gm, '<span class="cmt">$1</span>');
+  return (cap ? `<div class="codecap">${cap}</div>` : '') + `<div class="code"><button type="button" data-copy="${encodeURIComponent(text)}">copy</button>${body}</div>`;
+}
+const need = () => M.note('Enter all values to calculate.');
+/* ---------- preset validation: a broken entry is skipped and reported, never used ---------- */
+const GEAR_RE = /^\s*\d+(\.\d+)?\s*:\s*\d+(\.\d+)?\s*(,\s*\d+(\.\d+)?\s*:\s*\d+(\.\d+)?\s*)*$/;
+const ENUMS = { pdrive: ['bowden', 'direct'], hot: ['ptfe', 'allmetal'], fw: ['marlin', 'marlin212', 'klipper', 'crealityos'], edrive: ['bowden', 'direct', 'either'] };
+function cleanList(list, kind, fix) {
+  const seen = new Set(), out = [];
+  if (!Array.isArray(list)) { DATA_ERRORS.push(`${kind} must be a list [ … ].`); return out; }
+  list.forEach((o, i) => {
+    const where = `${kind} line ${i + 1}${o && typeof o.name === 'string' ? ` ("${o.name}")` : ''}`;
+    if (!o || typeof o !== 'object' || Array.isArray(o)) { DATA_ERRORS.push(`${where}: not a { … } entry. Skipped.`); return; }
+    const bad = [];
+    if (typeof o.id !== 'string' || !/^[A-Za-z0-9_-]+$/.test(o.id)) bad.push('id must be letters, digits, - or _');
+    else if (seen.has(o.id)) bad.push(`id "${o.id}" is used twice`);
+    if (typeof o.name !== 'string' || !o.name.trim()) bad.push('name is missing');
+    const num = k => { if (o[k] === undefined) o[k] = null; else if (o[k] !== null && !(typeof o[k] === 'number' && Number.isFinite(o[k]) && o[k] > 0)) bad.push(`${k} must be a positive number or null`); };
+    const oneOf = (k, allowed, def) => { if (o[k] === undefined || o[k] === null) o[k] = def; else if (!allowed.includes(o[k])) bad.push(`${k} must be ${allowed.map(a => `"${a}"`).join(' or ')}`); };
+    const str = (k, def) => { if (o[k] === undefined || o[k] === null) o[k] = def; else if (typeof o[k] !== 'string') bad.push(`${k} must be text in quotes`); };
+    const gear = () => { if (o.gear === undefined || o.gear === '') o.gear = null;
+      else if (o.gear !== null && !(typeof o.gear === 'string' && GEAR_RE.test(o.gear) && Number.isFinite(gearRatio(o.gear)) && gearRatio(o.gear) > 0)) bad.push('gear must look like "42:12" or "44:14, 37:17"'); };
+    fix(o, { num, oneOf, str, gear, bad });
+    if (bad.length) { DATA_ERRORS.push(`${where}: ${bad.join('; ')}. Skipped.`); return; }
+    seen.add(o.id); out.push(o);
+  });
+  return out;
+}
+function validateData() {
+  const P2 = cleanList(PRINTERS, 'PRINTERS', (o, v) => {
+    ['rd', 'maxT', 'accel', 'vel', 'meo', 'z', 'bedT', 'ratedT'].forEach(v.num); v.gear();
+    v.oneOf('drive', ENUMS.pdrive, 'bowden'); v.oneOf('hot', ENUMS.hot, 'ptfe'); v.oneOf('fw', ENUMS.fw, 'marlin');
+    v.str('fam', 'Other'); v.str('kin', 'cartesian'); v.str('cfg', null); v.str('borrow', null); v.str('note', null); v.str('spec', null);
+    if (o.spec && !/^https?:\/\//.test(o.spec)) v.bad.push('spec must start with https://');
+    if (o.gear && o.rd == null) v.bad.push('gear needs rd');
+  });
+  const E2 = cleanList(EXTRUDERS, 'EXTRUDERS', (o, v) => {
+    ['esteps', 'gearRd', 'retractMax'].forEach(v.num); v.gear();
+    if (o.id === 'stock') { o.drive = null; o.esteps = null; o.gear = null; } else v.oneOf('drive', ENUMS.edrive, 'either');
+    v.str('grp', 'Other'); v.str('note', null); v.str('srcName', null); v.str('src', null); v.oneOf('hot', ENUMS.hot, null);
+    if (o.src && !/^https?:\/\//.test(o.src)) v.bad.push('src must start with https://');
+    if (o.gear && o.esteps == null) v.bad.push('gear needs esteps');
+    if (o.defaultGear !== undefined && typeof o.defaultGear !== 'boolean') v.bad.push('defaultGear must be true or false');
+    if (o.defaultGear && !o.gear) v.bad.push('defaultGear needs gear');
+  });
+  if (!E2.some(e => e.id === 'stock')) {
+    DATA_ERRORS.push('EXTRUDERS: the "stock" entry is required. PrintCal added it back.');
+    E2.unshift({ id: 'stock', grp: 'Stock', name: 'Stock extruder (from the printer preset)', esteps: null, drive: null });
+  }
+  if (!P2.length) {
+    DATA_ERRORS.push('PRINTERS: no usable printers. PrintCal added a blank "Generic printer" so the page still works.');
+    P2.push({ id: 'generic', name: 'Generic printer', fam: 'Other', cfg: null, borrow: null, rd: null, gear: null, maxT: null, accel: null, vel: null, meo: null, z: null, bedT: null, ratedT: null, spec: null, kin: 'cartesian', drive: 'bowden', hot: 'ptfe', fw: 'marlin', note: null });
+  }
+  PRINTERS.splice(0, PRINTERS.length, ...P2);
+  EXTRUDERS.splice(0, EXTRUDERS.length, ...E2);
+  if (!byId(PRINTERS, DEFAULT_PRINTER)) DATA_ERRORS.push(`DEFAULT_PRINTER "${DEFAULT_PRINTER}" isn't in PRINTERS. Using "${PRINTERS[0].name}".`);
+  const box = $('dataErr');
+  if (DATA_ERRORS.length) {
+    box.hidden = false;
+    box.innerHTML = `<span class="ic">✕</span><span><b>Problems in the CUSTOMIZE HERE block of index.html.</b> These entries were skipped or reset so nothing is calculated from bad data:<ul>${DATA_ERRORS.map(e => `<li>${esc(e)}</li>`).join('')}</ul></span>`;
+  }
+}
+validateData();
+const DEF_PRINTER = byId(PRINTERS, DEFAULT_PRINTER) ? DEFAULT_PRINTER : PRINTERS[0].id;
+const cfgLink = p => p.cfg ? (/^https?:\/\//.test(p.cfg) ? p.cfg : KCFG + p.cfg) : '';
+const cfgName = p => p.cfg ? p.cfg.replace(/^.*\//, '') : '';
+
+/* Example values must never reach the summary: a calculator counts only once you've typed into it */
+const TOUCH = new Set();                                   // ids of fields the user has typed into
+const T = (...ids) => ids.some(id => TOUCH.has(id));
+const touchedPfx = pfx => [...TOUCH].some(id => id.startsWith(pfx + '_'));
+const demo = pfx => touchedPfx(pfx) ? '' : M.note('<b>Example numbers.</b> Replace them with your own measurements. Results from example values are left out of "All changes".');
+
+/* ---------- guarded output: blocks hide code until override ---------- */
+const OVERRIDE = {};
+function guarded(key, blocks, codeHtml) {
+  if (!blocks.length || OVERRIDE[key]) return (blocks.length ? M.warn('<b>Override active.</b> You chose to show a value that failed a safety check.') : '') + codeHtml;
+  return blocks.map(M.block).join('') + `<button type="button" class="ovr" data-ovr="${key}">I've re-measured and understand the risk. Show anyway</button>`;
+}
+
+/* ---------- setup / profile ---------- */
+function populateSetup() {
+  const fams = {};
+  PRINTERS.forEach(p => (fams[p.fam] = fams[p.fam] || []).push(p));
+  $('s_printer').innerHTML = Object.entries(fams).map(([fam, ps]) =>
+    `<optgroup label="${esc(fam)}">${ps.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</optgroup>`).join('');
+  const grps = {};
+  EXTRUDERS.forEach(e => (grps[e.grp] = grps[e.grp] || []).push(e));
+  $('s_ext').innerHTML = Object.entries(grps).map(([g, es]) =>
+    `<optgroup label="${esc(g)}">${es.map(e => `<option value="${e.id}">${esc(e.name)}${e.drive === 'direct' ? ' · DD' : e.drive === 'bowden' ? ' · bowden' : ''}</option>`).join('')}</optgroup>`).join('');
+  $('extable').querySelector('tbody').innerHTML = EXTRUDERS.filter(e => e.esteps).map(e => {
+    const rd = 3200 / e.esteps;
+    const gr = e.gear ? `${ft(e.gearRd || 3200 * gearRatio(e.gear) / e.esteps, 3)} + <code>gear_ratio: ${esc(e.gear)}</code>` : '—';
+    const dr = e.drive === 'either' ? 'either' : e.drive;
+    const src = e.src ? `<a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(e.srcName || e.src)}</a>` : (e.srcName ? esc(e.srcName) : '—');
+    return `<tr><td>${esc(e.name)}</td><td>${dr}</td><td>${e.esteps}</td><td>${f(rd, 3)}</td><td>${gr}</td><td style="text-align:left">${src}</td></tr>`;
+  }).join('');
+  // printer reference table: the static rows in the HTML are a no-JavaScript fallback; this rebuilds them
+  // from PRINTERS so a printer you add to the CUSTOMIZE block shows up here too
+  const d = v => v == null ? '—' : esc(v);
+  $('prtable').querySelector('tbody').innerHTML = PRINTERS.map(p => {
+    const es = p.rd ? 3200 * gearRatio(p.gear) / p.rd : null;
+    const cfg = p.cfg ? `<a href="${esc(cfgLink(p))}" target="_blank" rel="noopener">${esc(cfgName(p))}</a>`
+      : p.borrow ? `<span class="dim">none (borrowed: ${esc(p.borrow)})</span>`
+      : p.spec ? `<span class="dim">none</span> · <a href="${esc(p.spec)}" target="_blank" rel="noopener">maker specs</a>` : '<span class="dim">none</span>';
+    return `<tr><td>${esc(p.name)}</td><td>${d(p.rd)}</td><td>${d(p.gear)}</td><td>${es ? es.toFixed(1) : '—'}</td><td>${esc(p.drive)}</td><td>${d(p.maxT)}</td><td>${d(p.accel)}</td><td>${d(p.meo)}</td><td>${cfg}</td></tr>`;
+  }).join('\n');
+  // limits table / guide text: always show the limits actually in use
+  document.querySelectorAll('[data-lim]').forEach(el => { const v = LIM[el.dataset.lim]; el.textContent = el.dataset.fmt === 'pct' ? String(+(v * 100).toFixed(4)) : String(v); });
+}
+
+function S() {
+  return { printer: $('s_printer').value, fw: $('s_fw').value, ext: $('s_ext').value, drive: $('s_drive').value,
+           hot: $('s_hot').value, maxT: n('s_maxT'), full: n('s_full'), micro: n('s_micro'),
+           adxl: $('s_adxl').value, gear: $('s_gear').checked, noz: n('s_noz') };
+}
+
+/* Resolve the full profile: nominal extruder values + every limit used by the guards */
+function P() {
+  const s = S(), pr = byId(PRINTERS, s.printer), ex = byId(EXTRUDERS, s.ext);
+  const isK = s.fw === 'klipper' || s.fw === 'crealityos';
+  let es16 = null, gearStr = null, gearRd = null, srcTxt = '', srcUrl = '';
+  if (s.ext === 'stock') {
+    if (pr.rd) { es16 = 3200 * gearRatio(pr.gear) / pr.rd; gearStr = pr.gear; gearRd = pr.gear ? pr.rd : null;
+      srcTxt = pr.cfg ? `Klipper ${cfgName(pr)}` : pr.borrow ? `borrowed from ${pr.borrow}` : 'your own config'; srcUrl = cfgLink(pr); }
+  } else if (ex.esteps) {
+    es16 = ex.esteps; gearStr = ex.gear || null; gearRd = ex.gear ? (ex.gearRd || 3200 * gearRatio(ex.gear) / ex.esteps) : null;
+    srcTxt = ex.srcName; srcUrl = ex.src;
+  }
+  const scale = (s.micro / 16) * (s.full / 200);
+  const nomSteps = es16 ? es16 * scale : null;                        // Marlin steps/mm at chosen micro/full
+  const nomRdPlain = es16 ? 3200 / es16 : null;                        // Klipper rd without gear_ratio (micro-independent)
+  const nomRdGear = gearStr ? gearRd : null;
+  const useGear = isK && s.gear;
+  const nomRd = useGear ? (nomRdGear ?? null) : nomRdPlain;
+  // max_temp: only a plausible value is used; anything else falls back to the preset (and is flagged in setup)
+  const maxTok = Number.isFinite(s.maxT) && s.maxT >= MAXT_MIN && s.maxT <= MAXT_MAX;
+  const maxTbad = $('s_maxT').value.trim() !== '' && !maxTok;
+  const maxT = maxTok ? s.maxT : (pr.maxT ?? null);
+  const fwCap = maxT != null ? maxT - OVERSHOOT_C : null;
+  // the tower cap is the lowest limit that applies; the maker's nozzle rating only counts for the untouched stock hotend
+  const rated = s.ext === 'stock' && s.hot === pr.hot && pr.ratedT ? pr.ratedT : null;
+  const caps = [];
+  if (s.hot === 'ptfe') caps.push([PTFE_CAP_C, `PTFE-lined guideline (${PTFE_CAP_C} °C)`]);
+  if (fwCap != null) caps.push([fwCap, `max_temp ${maxT} − ${OVERSHOOT_C} °C headroom`]);
+  if (rated != null) caps.push([rated, `maker's nozzle rating (${rated} °C)`]);
+  caps.sort((a, b) => a[0] - b[0]);
+  const capT = caps.length ? caps[0][0] : null, capWhy = caps.length ? caps[0][1] : 'enter max_temp';
+  return { s, pr, ex, isK, fwName: { marlin: 'Stock Marlin', marlin212: 'Marlin 2.1.2+', klipper: 'Klipper', crealityos: 'Creality OS' }[s.fw],
+    es16, nomSteps, nomRd, nomRdPlain, nomRdGear, gearStr, useGear, srcTxt, srcUrl,
+    drive: s.drive, capT, capWhy, maxT, maxTbad, noz: Number.isFinite(s.noz) && s.noz > 0 ? s.noz : 0.4, accel: pr.accel, vel: pr.vel, meo: isK ? (pr.meo ?? 50) : null };
+}
+
+/* Apply preset → only setup-derived fields; never touches the user's measurements */
+let USER_FW = false;        // the user picked a firmware themselves → keep it when the printer changes
+let PREV_ISK = null;        // firmware family before this change (Klipper-type or Marlin-type)
+let PREV_EXT = 'stock';
+const isKfw = fw => fw === 'klipper' || fw === 'crealityos';
+const r2 = v => String(Math.round(v * 100) / 100);
+function applyPreset(what) {
+  const s = S(), pr = byId(PRINTERS, s.printer);
+  if (what === 'printer') {
+    $('s_fw').value = !USER_FW ? pr.fw : (pr.fw === 'crealityos' && isKfw(s.fw)) ? 'crealityos' : s.fw;
+    $('s_ext').value = 'stock';
+    $('s_drive').value = pr.drive;
+    $('s_hot').value = pr.hot;
+    $('s_maxT').value = pr.maxT ?? '';
+    $('s_gear').checked = !!pr.gear;
+    $('s_full').value = '200'; $('s_micro').value = '16';
+  }
+  if (what === 'ext') {
+    const ex = byId(EXTRUDERS, s.ext);
+    if (ex.drive && ex.drive !== 'either') $('s_drive').value = ex.drive;
+    if (ex.id === 'stock') {
+      $('s_drive').value = pr.drive; $('s_gear').checked = !!pr.gear;
+      if (byId(EXTRUDERS, PREV_EXT)?.hot) $('s_hot').value = pr.hot;      // undo a hotend that came with the previous kit
+    } else {
+      $('s_gear').checked = !!ex.defaultGear;   // follow the form the maker / official config documents
+      if (ex.hot) $('s_hot').value = ex.hot;     // kits that include their own hotend
+    }
+  }
+  const p = P();
+  const flipped = PREV_ISK !== null && p.isK !== PREV_ISK;   // Marlin ↔ Klipper: the extruder number means something else now
+  document.body.classList.toggle('fw-klipper', p.isK);
+  document.body.classList.toggle('fw-marlin', !p.isK);
+  // extruder current-value field: only when the meaning of that number changed
+  // (same-family firmware changes and, on Klipper, motor/microstep changes leave rotation_distance as it is)
+  if (['printer', 'ext', 'gear'].includes(what) || (what === 'fw' && flipped) || (what === 'motor' && !p.isK)) {
+    const cur = $('ex_cur');
+    cur.value = p.isK ? (p.nomRd ? ft(p.nomRd, 3) : '') : (p.nomSteps ? ft(p.nomSteps, 2) : '');
+    cur.classList.add('preset');
+  }
+  if (what === 'printer' || (what === 'fw' && flipped)) {
+    ['ex_req', 'ex_mark', 'ex_left'].forEach(id => TOUCH.delete(id));   // example values again → not "measured"
+    if (p.isK) { $('ex_req').value = 50; $('ex_mark').value = 70; $('ex_left').value = 20.6; }
+    else { $('ex_req').value = 100; $('ex_mark').value = 120; $('ex_left').value = 22.5; }
+  }
+  // pressure advance ranges by mounting (Klipper doc: .005 direct, .020 long bowden)
+  if (['printer', 'ext', 'drive'].includes(what)) {
+    $('pa_factor').value = p.drive === 'direct' ? '0.005' : '0.020';
+    $('pa_factor').classList.add('preset');
+    if (TW_MODE === 'retract' && !T('tw_start', 'tw_end')) setTowerDefaults('retract');
+  }
+  if (what === 'printer' && TW_MODE === 'temp' && !T('tw_start', 'tw_end')) clampTempDefaults();
+  // nozzle size → example slicer values (only fields the user hasn't typed in)
+  if (what === 'noz') {
+    if (!T('mv_lw')) $('mv_lw').value = r2(p.noz * 1.05);
+    if (!T('mv_lh')) $('mv_lh').value = r2(p.noz * 0.5);
+    if (!T('fl_wt')) $('fl_wt').value = r2(p.noz * 1.125);
+  }
+  PREV_ISK = p.isK; PREV_EXT = $('s_ext').value;
+}
+
+function renderSetup() {
+  const p = P(), s = p.s, pr = p.pr;
+  $('ex_title').textContent = p.isK ? 'Klipper rotation_distance calculator' : 'E-steps calculator (M92)';
+  $('ex_curlbl').textContent = p.isK ? 'Current rotation_distance' : 'Current e-steps';
+  $('ex_curu').textContent = p.isK ? 'mm' : 'steps/mm';
+  document.querySelectorAll('.exreq').forEach(e => e.textContent = ft(n('ex_req'), 1));
+  document.querySelectorAll('[data-k-only]').forEach(e => e.style.display = p.isK ? '' : 'none');
+  document.querySelectorAll('[data-m-only]').forEach(e => e.style.display = p.isK ? 'none' : '');
+  document.querySelectorAll('[data-k-inline]').forEach(e => e.style.display = p.isK ? '' : 'none');
+  document.querySelectorAll('[data-m-inline]').forEach(e => e.style.display = p.isK ? 'none' : '');
+  $('sum_tag').textContent = p.fwName;
+
+  const origin = pr.cfg ? (/^https?:/.test(pr.cfg) ? 'from the preset\'s config' : 'official config') : pr.borrow ? `borrowed from ${esc(pr.borrow)}` : pr.spec ? 'maker\'s published spec' : 'from the preset';
+  const fact = (k, v, sub = '') => `<div class="fact"><div class="k">${k}</div><div class="v">${v}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`;
+  const nomTxt = p.isK
+    ? (p.nomRd ? `${ft(p.nomRd, 3)}${p.useGear ? ` <small>+ ${p.gearStr}</small>` : ''}` : '—')
+    : (p.nomSteps ? `${ft(p.nomSteps, 1)}` : '—');
+  $('facts').innerHTML =
+    fact(p.isK ? 'Nominal rotation_distance' : 'Nominal e-steps', nomTxt, p.srcUrl ? `<a href="${esc(p.srcUrl)}" target="_blank" rel="noopener">${esc(p.srcTxt)}</a>` : esc(p.srcTxt || 'enter your own')) +
+    fact('Mounting', p.drive === 'direct' ? 'Direct drive' : 'Bowden', `PA test factor ${p.drive === 'direct' ? '.005' : '.020'}`) +
+    fact('Tower temp cap', p.capT != null ? `${p.capT} °C` : '—', p.capWhy) +
+    fact('max_accel', p.accel ?? '—', p.accel == null ? 'unknown, check yours' : origin) +
+    (p.isK ? fact('max_extrude_only', `${p.meo} mm`, pr.meo == null ? 'Klipper default; check yours' : origin) : fact('Kinematics', esc(pr.kin), ''));
+
+  let m = '';
+  if (p.maxTbad) m += M.block(`<b>max_temp must be between ${MAXT_MIN} and ${MAXT_MAX} °C.</b> PrintCal is ignoring that value and using ${pr.maxT != null ? `the preset (${pr.maxT} °C)` : 'no firmware limit'} until you fix it.`);
+  if (pr.note) m += M.note(esc(pr.note));
+  if (s.ext !== 'stock' && p.ex.note) m += M.note(`<b>${esc(p.ex.name)}:</b> ${esc(p.ex.note)}`);
+  if (p.drive === 'direct' && pr.drive === 'bowden') m += M.warn(
+    '<b>Converting bowden → direct drive?</b> Do these in order before printing: ' +
+    '<ol style="margin:6px 0 0;padding-left:18px">' +
+    (s.ext !== 'stock' ? `<li>Set the new ${p.isK ? 'rotation_distance' : 'e-steps'} (prefilled below), then run the extruder test.</li>`
+                       : `<li>Same extruder, new position: keep your ${p.isK ? 'rotation_distance' : 'e-steps'}, but run the extruder test again.</li>`) +
+    `<li>Check direction: heat up, extrude 10 mm. If filament pulls back out, ${p.isK ? 'invert <code>dir_pin</code> in <code>[extruder]</code> (add or remove <code>!</code>)' : 'flip <code>INVERT_E0_DIR</code> and reflash. Stock firmware can\'t change it, so swap one motor coil pair instead'}.</li>` +
+    '<li>Cut slicer retraction to the direct-drive range (about 0.5–2 mm). Bowden lengths of 5–6 mm will jam.</li>' +
+    '<li>Redo pressure advance with the direct-drive range (factor .005).</li>' +
+    '<li>Re-measure probe offsets: the nozzle moved relative to the probe.</li>' +
+    '<li>If the hotend, heater or fan changed too, run <a href="#pid">PID tuning</a> first.</li></ol>');
+  if (p.drive === 'bowden' && pr.drive === 'direct') m += M.note('<b>Direct drive → bowden:</b> retraction needs to be longer (several mm), and pressure advance must be redone with the bowden range (factor .020).');
+  if (s.fw === 'crealityos') m += M.warn('<b>Creality OS:</b> download a copy of <code>printer.cfg</code> before editing it. A typo there stops the printer booting until you fix it. Creality OS can be built on an older Klipper: if a live test command answers "Unknown command" or rejects a parameter, skip it and edit printer.cfg instead.');
+  if (!p.isK && s.ext !== 'stock' && s.fw === 'marlin') m += M.note('Stock firmware: after swapping extruders, set the new e-steps with <code>M92</code> + <code>M500</code>. They survive power cycles if your firmware has EEPROM storage. Check with <code>M503</code> after a reboot.');
+  if (p.isK && p.gearStr && !p.useGear) m += M.note(`This extruder can also be configured with <code>gear_ratio: ${esc(p.gearStr)}</code>. PrintCal assumes you <b>don't</b> use it. If your <code>[extruder]</code> has that line, tick the box above.`);
+  if (p.isK && p.useGear && !p.gearStr) m += M.warn('The gear_ratio box is ticked, but this extruder has no documented gear ratio. Untick it unless your config really has one; nominal checks are off meanwhile.');
+  if (s.full === 400) m += M.note('0.9° extruder motor: Marlin e-steps double; Klipper rotation_distance stays the same (set <code>full_steps_per_rotation: 400</code>).');
+  if (s.hot === 'allmetal' && p.capT == null) m += M.warn('Enter your firmware\'s hotend max_temp so PrintCal can cap temperature towers.');
+  $('setupMsgs').innerHTML = m;
+
+  $('pbar').innerHTML = `<span class="lbl">Profile</span><span class="pill acc">${esc(pr.name)}</span><span class="pill">${p.fwName}</span>` +
+    `<span class="pill">${esc(s.ext === 'stock' ? 'stock extruder' : p.ex.name.replace(/ \(.*\)/, ''))}</span><span class="pill">${p.drive === 'direct' ? 'direct drive' : 'bowden'}</span>` +
+    `<span class="pill">${s.hot === 'ptfe' ? 'PTFE-lined' : 'all-metal'}${p.capT != null ? ` · ≤${p.capT} °C` : ''}</span><span class="pill">${p.noz} mm nozzle</span>` +
+    (p.isK && s.adxl === 'adxl' ? '<span class="pill">accelerometer</span>' : '') + `<a class="edit" href="#setup">edit ↑</a>`;
+}
+
+/* ---------- RESULTS for the summary ---------- */
+const OUT = {};   // key → { k: [klipper lines], m: [marlin lines], note }
+
+/* ---------- calculators ---------- */
+const CALC = {
+  ex() {
+    const p = P(); OUT.ex = null;
+    const cur = n('ex_cur'), req = n('ex_req'), mark = n('ex_mark'), left = n('ex_left');
+    if (!ok(cur, req, mark, left) || cur <= 0 || req <= 0) return { out_ex: need() + (p.nomRd || p.nomSteps ? '' : M.note('No reference value for this printer. Enter the value your printer uses now.')) };
+    if (mark <= 0 || left < 0) return { out_ex: M.block('The initial mark distance must be above zero, and the distance after can\'t be negative.') };
+    const act = mark - left;
+    if (act <= 0) return { out_ex: M.block('The "after" distance must be smaller than the initial mark distance.') };
+    const nv = p.isK ? cur * act / req : cur * req / act;
+    const chg = nv / cur - 1;
+    const blocks = [], warns = [];
+    // 1 · change size
+    if (Math.abs(chg) > EX_BLOCK) blocks.push(`<b>${f(chg * 100, 1)} % change.</b> A correction this large almost always means a mechanical problem (slipping drive gear, loose idler, partial clog, extruding too fast) or a misread mark. Fix that and re-measure.`);
+    else if (Math.abs(chg) > EX_WARN) warns.push(`${f(chg * 100, 1)} % change is larger than typical. Apply it, then repeat the test to confirm.`);
+    // 2 · current value vs preset nominal → catches wrong extruder / gear_ratio mix-ups
+    const nom = p.isK ? p.nomRd : p.nomSteps;
+    if (nom && Math.abs(cur / nom - 1) > NOMINAL_MISMATCH) {
+      const ratio = cur / nom;
+      let why = 'Check the extruder selection in setup.';
+      if (p.isK && p.gearStr) { const g = gearRatio(p.gearStr); if (Math.abs(ratio / g - 1) < .1 || Math.abs(ratio * g - 1) < .1) why = `That's the <b>gear_ratio ${esc(p.gearStr)}</b> factor. Your config and the gear_ratio checkbox disagree.`; }
+      if (!p.isK && Math.abs(ratio - 2) < .1) why = 'That\'s exactly 2×. Check microsteps / motor type in setup.';
+      warns.push(`Your current value (${ft(cur, 3)}) is ${f(ratio, 2)}× the ${esc(p.ex.id === 'stock' ? p.pr.name : p.ex.name)} reference (${ft(nom, 3)}). ${why}`);
+    }
+    // 3 · Klipper refuses long extrude-only moves
+    if (p.isK && req > p.meo) warns.push(`Klipper will reject <code>G1 E${ft(req, 1)}</code>: max_extrude_only_distance is ${p.meo} mm here. Use ${p.meo} mm or less, which is Klipper's own 50 mm method.`);
+    // 4 · Klipper retest rule
+    if (Math.abs(act - req) > 2 && !blocks.length) warns.push('Off by more than 2 mm. Klipper recommends running the test again after applying this value.');
+    // 5 · barely moved → direction / tension problem, not a calibration value
+    if (act < 0.2 * req) warns.push('<b>Almost nothing moved.</b> If the extruder clicked or ran backwards, check direction and idler tension before changing any value.');
+
+    let h = `<div class="res">${big(p.isK ? 'New rotation_distance' : 'New e-steps', p.isK ? f(nv, 3) : f(nv, 2), p.isK ? 'mm' : 'steps/mm', blocks.length ? 'bad' : '')}${big('Actual extruded', f(act, 2), 'mm', 'alt')}${big('Change', (chg >= 0 ? '+' : '') + f(chg * 100, 2), '%', 'alt')}${p.isK ? big('≈ steps/mm', f(p.s.full * p.s.micro * (p.useGear && p.gearStr ? gearRatio(p.gearStr) : 1) / nv, 1), '', 'alt') : big('≈ rotation_distance', f(p.s.full * p.s.micro / nv, 3), 'mm', 'alt')}</div>`;
+    h += warns.map(M.warn).join('');
+    let c;
+    if (p.isK) {
+      const gearLines = p.useGear
+        ? (p.gearStr ? [`gear_ratio: ${p.gearStr}   # must be present for this rotation_distance to be right`] : ['# keep your existing gear_ratio line unchanged'])
+        : ['# no gear_ratio line in this section (delete it if there is one)'];
+      c = code(`SET_EXTRUDER_ROTATION_DISTANCE EXTRUDER=extruder DISTANCE=${f(nv, 3)}`,
+               !p.useGear ? '1 · Test live (lost on restart)'
+                 : p.gearStr ? `1 · Test live (lost on restart; only valid if gear_ratio: ${esc(p.gearStr)} is already in your config)`
+                 : '1 · Test live (lost on restart; leave your existing gear_ratio line as it is)') +
+          code(`[extruder]\n${gearLines.join('\n')}\nrotation_distance: ${f(nv, 3)}`, '2 · Make permanent in printer.cfg');
+      OUT.ex = { k: [...gearLines.map(l => ['[extruder]', l]), ['[extruder]', `rotation_distance: ${f(nv, 3)}`]] };
+    } else {
+      c = code(`M92 E${f(nv, 2)}`, '1 · Set (active now)') + code('M500', '2 · Save to EEPROM') ;
+      OUT.ex = { m: [`M92 E${f(nv, 2)}`] };
+    }
+    if ((blocks.length && !OVERRIDE.ex) || !T('ex_left', 'ex_mark')) OUT.ex = null;
+    if (!blocks.length && !warns.length) h += M.ok(`Within range for a ${esc(p.ex.id === 'stock' ? p.pr.name : p.ex.name)}.`);
+    return { out_ex: demo('ex') + h + guarded('ex', blocks, c) };
+  },
+
+  pa() {
+    const p = P(); const r = {}; OUT.pa = null;
+    const check = v => {
+      const b = [], w = [];
+      if (v < 0) b.push('Pressure advance can\'t be negative.');
+      if (v > PA_MAX) b.push(`Above ${PA_MAX}. Klipper's docs give 0.050–1.000 as typical, with the high end only on bowden. Re-read the tower.`);
+      if (p.drive === 'direct' && v > PA_DD_WARN && v <= PA_MAX) w.push(`High for direct drive (PrintCal flags anything above ${PA_DD_WARN}). Make sure you used the direct-drive range.`);
+      return { b, w };
+    };
+    // Klipper tower
+    const s = n('pa_start'), fa = n('pa_factor'), h = n('pa_h');
+    const tb = [];
+    if (ok(s, fa, h)) {
+      if (s < 0 || s > PA_MAX) tb.push(`START must be between 0 and ${PA_MAX}.`);
+      if (fa <= 0 || fa > 0.1) tb.push('FACTOR must be above 0 and no more than 0.1. Klipper uses .005 for direct drive and .020 for bowden.');
+      if (h < 0) tb.push('Height can\'t be negative.');
+    }
+    if (tb.length) r.out_pa1 = tb.map(M.block).join('');
+    else if (ok(s, fa, h)) {
+      const v = s + h * fa, { b, w } = check(v);
+      if (p.drive === 'direct' && fa > 0.01) w.push('FACTOR looks like the bowden value (.020). Klipper suggests .005 for direct drive.');
+      const test = `SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=1 ACCEL=500\nTUNING_TOWER COMMAND=SET_PRESSURE_ADVANCE PARAMETER=ADVANCE START=${ft(s, 4)} FACTOR=${ft(fa, 4)}\n; after the print: FIRMWARE_RESTART restores your normal limits`;
+      r.out_pa1 = demo('pa') + code(test, 'Before printing the tower') +
+        `<div class="res">${big('pressure_advance', ft(v, 4), '', b.length ? 'bad' : '')}</div>` + w.map(M.warn).join('') +
+        guarded('pa1', b, code(`SET_PRESSURE_ADVANCE ADVANCE=${ft(v, 4)}`, '1 · Test live') + code(`[extruder]\npressure_advance: ${ft(v, 4)}`, '2 · Make permanent'));
+      if (p.isK && T('pa_h') && (!b.length || OVERRIDE.pa1)) OUT.pa = { k: [['[extruder]', `pressure_advance: ${ft(v, 4)}`]] };
+    } else r.out_pa1 = need();
+    // Orca tower
+    const ps = n('po_start'), pst = n('po_step'), ph = n('po_h');
+    const ob = [];
+    if (ok(ps, pst, ph)) {
+      if (ps < 0 || ps > PA_MAX) ob.push(`Start must be between 0 and ${PA_MAX}.`);
+      if (pst <= 0 || pst > 0.1) ob.push('Step must be above 0 and no more than 0.1 per mm. OrcaSlicer\'s defaults are 0.002 (direct drive) and 0.02 (bowden).');
+      if (ph < 0) ob.push('Height can\'t be negative.');
+    }
+    if (ob.length) r.out_pa2 = ob.map(M.block).join('');
+    else if (ok(ps, pst, ph)) {
+      const v = ps + pst * ph, { b, w } = check(v);
+      const cc = p.isK ? code(`SET_PRESSURE_ADVANCE ADVANCE=${ft(v, 4)}`, 'Test live') + code(`[extruder]\npressure_advance: ${ft(v, 4)}`, 'Make permanent')
+        : code(`M900 K${ft(v, 4)}\nM500`, 'Marlin Linear Advance');
+      r.out_pa2 = demo('po') + `<div class="res">${big('Pressure advance', ft(v, 4), '', b.length ? 'bad' : '')}</div>` + w.map(M.warn).join('') + guarded('pa2', b, cc) +
+        (!p.isK ? M.note('<code>M900</code> only works if your firmware was built with <code>LIN_ADVANCE</code>. If it replies "Unknown command", Linear Advance isn\'t available; leave PA in OrcaSlicer\'s filament settings off.') : '');
+      if (!p.isK && T('po_h') && (!b.length || OVERRIDE.pa2)) OUT.pa = { m: [`M900 K${ft(v, 4)}`] };
+      if (p.isK && !OUT.pa && T('po_h') && (!b.length || OVERRIDE.pa2)) OUT.pa = { k: [['[extruder]', `pressure_advance: ${ft(v, 4)}`]] };
+    } else r.out_pa2 = need();
+    return r;
+  },
+
+  is() {
+    const p = P(); const r = {}; OUT.is = null;
+    // accelerometer path
+    $('is_adxl').innerHTML = p.isK && p.s.adxl === 'adxl'
+      ? M.ok('<b>Accelerometer fitted:</b> Klipper can measure resonances directly, which is more accurate than the ringing tower. With <code>[adxl345]</code> (or your chip) and <code>[resonance_tester]</code> configured per the <a href="https://www.klipper3d.org/Measuring_Resonances.html" target="_blank" rel="noopener">Measuring Resonances</a> guide, run:') +
+        code('ACCELEROMETER_QUERY\nSHAPER_CALIBRATE\nSAVE_CONFIG', 'Automatic tuning (Klipper)') : '';
+    const v = n('is_v'), nx = n('is_nx'), dx = n('is_dx'), ny = n('is_ny'), dy = n('is_dy');
+    const fx = ok(v, nx, dx) && v > 0 && nx > 0 && dx > 0 ? v * nx / dx : NaN, fy = ok(v, ny, dy) && v > 0 && ny > 0 && dy > 0 ? v * ny / dy : NaN;
+    const test = p.isK
+      ? `SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=0\nSET_PRESSURE_ADVANCE ADVANCE=0\nSET_INPUT_SHAPER SHAPER_FREQ_X=0 SHAPER_FREQ_Y=0   ; "Unknown command" here = no [input_shaper] yet, safe to ignore\nTUNING_TOWER COMMAND=SET_VELOCITY_LIMIT PARAMETER=ACCEL START=1500 STEP_DELTA=500 STEP_HEIGHT=5`
+      : null;
+    let h = '';
+    if (test) {
+      h += code(test, 'Before printing the ringing tower (Klipper)');
+      h += M.warn(`The tower raises acceleration from 1500 to 7000 mm/s²${p.accel && p.accel < 7000 ? `, well above this printer's <code>max_accel</code> of ${p.accel}` : ''}. Watch the print and <b>stop it if the printer shakes hard or skips steps</b>, as Klipper's guide says. Run <code>FIRMWARE_RESTART</code> afterwards to restore your limits.`);
+    }
+    if (Number.isFinite(fx) || Number.isFinite(fy)) {
+      const b = [], w = [];
+      [['X', fx], ['Y', fy]].forEach(([a, fq]) => {
+        if (!Number.isFinite(fq)) return;
+        if (fq < IS_MIN || fq > IS_MAX) b.push(`${a}: ${f(fq, 1)} Hz is outside ${IS_MIN}–${IS_MAX} Hz. Recount the ripples and the distance.`);
+        else if (fq < IS_LOW) w.push(`${a}: ${f(fq, 1)} Hz is low. Klipper suggests fixing mechanics first (belt tension, frame, what the printer stands on).`);
+      });
+      h += demo('is') + `<div class="res">${big('X frequency', f(fx, 1), 'Hz', b.length ? 'bad' : '')}${big('Y frequency', f(fy, 1), 'Hz', 'alt')}</div>` + w.map(M.warn).join('');
+      let c;
+      if (p.isK) {
+        const L = ['[input_shaper]']; if (Number.isFinite(fx)) L.push(`shaper_freq_x: ${f(fx, 1)}`); if (Number.isFinite(fy)) L.push(`shaper_freq_y: ${f(fy, 1)}`); L.push('shaper_type: mzv   # Klipper: MZV or EI suit most printers');
+        c = code(L.join('\n'), '1 · Add or edit the [input_shaper] section in printer.cfg, then FIRMWARE_RESTART') +
+            code(`SET_INPUT_SHAPER${Number.isFinite(fx) ? ` SHAPER_FREQ_X=${f(fx, 1)}` : ''}${Number.isFinite(fy) ? ` SHAPER_FREQ_Y=${f(fy, 1)}` : ''}`, '2 · Fine-tune live (works once the section exists)');
+        const keep = x => (x.startsWith('shaper_freq_x') && T('is_nx', 'is_dx')) || (x.startsWith('shaper_freq_y') && T('is_ny', 'is_dy'));
+        if (!b.length || OVERRIDE.is) { const kk = L.filter(keep).map(x => ['[input_shaper]', x]); OUT.is = kk.length ? { k: [['[input_shaper]', '# add this section if your printer.cfg doesn\'t have one yet (with shaper_type: mzv)'], ...kk] } : null; }
+      } else {
+        const L = []; if (Number.isFinite(fx)) L.push(`M593 X F${f(fx, 1)}`); if (Number.isFinite(fy)) L.push(`M593 Y F${f(fy, 1)}`);
+        c = code(L.join('\n') + '\nM500', 'Marlin (needs INPUT_SHAPING, Marlin 2.1.2+)');
+        if (p.s.fw === 'marlin') c += M.note('Stock Creality firmware may not include input shaping. Send <code>M593</code> first: "Unknown command" means it isn\'t built in.');
+        const keepM = L.filter(x => (x.startsWith('M593 X') && T('is_nx', 'is_dx')) || (x.startsWith('M593 Y') && T('is_ny', 'is_dy')));
+        if ((!b.length || OVERRIDE.is) && keepM.length) OUT.is = { m: keepM };
+      }
+      h += guarded('is', b, c);
+    } else h += need();
+    r.out_is = h;
+    // Marlin M593 tower
+    const ih = n('im_h'), ilh = n('im_lh'), is0 = n('im_s'), isp = n('im_sp'), inn = n('im_n');
+    if (p.isK) r.out_im = '';                                   // Marlin-only tool: render nothing in Klipper mode
+    else if (ok(ih, ilh, is0, isp, inn) && ilh > 0 && inn > 0) {
+      const layer = ih / ilh, fq = is0 + isp * (layer - 2) / inn;
+      r.out_im = demo('im') + `<div class="res">${big('Frequency at that height', f(fq, 2), 'Hz')}${big('Layer number', f(layer, 0), '', 'alt')}</div>` +
+        (fq < IS_MIN || fq > IS_MAX ? M.block(`Outside ${IS_MIN}–${IS_MAX} Hz. Check the layer height and formula values.`) : code(`M593 F${f(fq, 2)}\nM500`, 'Apply to X and Y'));
+    } else r.out_im = need();
+    return r;
+  },
+
+  fl() {
+    const r = {};
+    const flowMsgs = v => (v < FLOW_LO || v > FLOW_HI) ? M.warn(`${f(v, 4)} is outside ${FLOW_LO}–${FLOW_HI}. That's unusual after extruder calibration. Re-check the extruder first; a big flow fix usually hides an e-steps / rotation_distance error.`) : '';
+    const o = n('fl_old'), m = n('fl_mod');
+    if (ok(o, m) && (o <= 0 || m <= -100)) r.out_fl1 = M.block('The flow ratio must be above zero, and the modifier above −100.');
+    else if (ok(o, m)) { const v = o * (100 + m) / 100; r.out_fl1 = demo('fl') + `<div class="res">${big('New flow ratio', f(v, 4))}${big('Cura / Prusa', f(v * 100, 1), '%', 'alt')}</div>` + flowMsgs(v) + (m === -9 ? M.note('Best block is −9, the edge of Pass 2. Apply it and run Pass 2 again.') : '') + (Math.abs(m) === 20 ? M.note('Best block is at the edge of Pass 1. Apply it and rerun Pass 1.') : ''); }
+    else r.out_fl1 = need();
+    const yo = n('fl_yold'), ym = n('fl_ymod');
+    if (ok(yo, ym) && yo <= 0) r.out_fl2 = M.block('The flow ratio must be above zero.');
+    else if (ok(yo, ym)) { const v = yo + ym; r.out_fl2 = (Math.abs(ym) >= 1 ? M.block('YOLO modifiers are fractions (e.g. 0.02), not percent.') : `<div class="res">${big('New flow ratio', f(v, 4))}${big('Cura / Prusa', f(v * 100, 1), '%', 'alt')}</div>` + flowMsgs(v)); }
+    else r.out_fl2 = need();
+    const wo = n('fl_wold'), wt = n('fl_wt');
+    const ms = ($('fl_wm').value || '').split(/[,;\s]+/).map(parseFloat).filter(Number.isFinite);
+    if (ok(wo, wt) && ms.length && (wo <= 0 || wt <= 0 || ms.some(x => x <= 0))) r.out_fl3 = M.block('The flow ratio, target and every measurement must be above zero.');
+    else if (ok(wo, wt) && ms.length) {
+      const mean = ms.reduce((a, b) => a + b, 0) / ms.length;
+      const sd = ms.length > 1 ? Math.sqrt(ms.reduce((a, b) => a + (b - mean) ** 2, 0) / (ms.length - 1)) : NaN;
+      const v = wo * wt / mean;
+      r.out_fl3 = `<div class="res">${big('New flow ratio', f(v, 4))}${big('Mean wall', f(mean, 3), 'mm', 'alt')}${big('Spread 1σ', ft(sd, 3), 'mm', 'alt')}</div>` + flowMsgs(v) +
+        (Number.isFinite(sd) && sd > 0.02 ? M.note('Readings vary by more than 0.02 mm. Measure away from corners and the seam.') : '');
+    } else r.out_fl3 = need();
+    return r;
+  },
+
+  mv() {
+    const p = P();
+    const s = n('mv_start'), st = n('mv_step'), h = n('mv_h'), mg = n('mv_margin'), lh = n('mv_lh'), lw = n('mv_lw');
+    if (!ok(s, st, h, mg)) return { out_mv: need() };
+    if (s < 0 || st <= 0 || h < 0) return { out_mv: M.block('Start must be ≥ 0, step > 0 and height ≥ 0.') };
+    if (mg < 0 || mg >= 90) return { out_mv: M.block('Safety margin must be between 0 and 90 %.') };
+    const mvs = s + h * st, safe = mvs * (1 - mg / 100);
+    let out = demo('mv') + `<div class="res">${big('Measured max', ft(mvs, 2), 'mm³/s', 'alt')}${big('Use in filament profile', ft(safe, 1), 'mm³/s')}`;
+    if (ok(lh, lw) && lh > 0 && lw > lh * (1 - Math.PI / 4)) {
+      const area = lh * (lw - lh * (1 - Math.PI / 4)), sp = safe / area;
+      out += big('Max line speed', ft(sp, 0), 'mm/s', p.vel && sp > p.vel ? 'alt' : '') + '</div>';
+      if (p.vel && sp > p.vel) out += M.note(`The hotend could feed ${ft(sp, 0)} mm/s, but this printer's <code>max_velocity</code> is ${p.vel} mm/s, so motion is the limit, not melting.`);
+      if (mg < 10) out += M.warn('OrcaSlicer recommends 10–20 % below the measured maximum.');
+      if (lh > 0.8 * p.noz) out += M.warn(`A ${ft(lh, 2)} mm layer is more than 80 % of your ${p.noz} mm nozzle (PrintCal flag). Check the layer height or the nozzle size in setup.`);
+    } else out += '</div>';
+    return { out_mv: out };
+  },
+
+  tw() {
+    const p = P(); OUT.tw = null;
+    const a = n('tw_start'), z = n('tw_end'), st = Math.abs(n('tw_step')), ev = n('tw_every'), b = n('tw_base'), h = n('tw_h');
+    if (!ok(a, z, st, ev, b) || ev <= 0) return { out_tw: need() };
+    if (st <= 0) return { out_tw: M.block('Change per step must be greater than zero.') };
+    if (b < 0) return { out_tw: M.block('Base height can\'t be negative.') };
+    if ((Math.max(a, z) - Math.min(a, z)) / st > 200) return { out_tw: M.block('That range and step would give over 200 blocks. Check the step size.') };
+    const lo = Math.min(a, z), hi = Math.max(a, z), dir = z >= a ? 1 : -1;
+    if (TW_MODE === 'temp' && lo < 0) return { out_tw: M.block('Temperatures can\'t be negative.') };
+    const blocks = [], warns = [];
+    if (TW_MODE === 'temp') {
+      if (p.capT != null && hi > p.capT) blocks.push(`<b>Don't print this tower.</b> Its hottest block is ${hi} °C, above your cap of ${p.capT} °C (${p.capWhy}). ${p.s.hot === 'ptfe' ? 'PTFE degrades at high temperature, and firmware stops heating near max_temp.' : 'Klipper refuses targets above max_temp and shuts down if the reading exceeds it; Marlin stops at MAXTEMP − overshoot.'}`);
+      if (lo < 170) warns.push('Below 170 °C most firmware blocks extrusion (cold-extrusion protection).');
+    }
+    if (TW_MODE === 'retract') {
+      const lim = p.drive === 'direct' ? RETRACT_DD_WARN : RETRACT_BOWDEN_WARN;
+      const mk = p.s.ext !== 'stock' && p.ex.retractMax ? p.ex.retractMax : null;
+      if (lo < 0) warns.push('Negative retraction makes no sense. Check the bottom value.');
+      if (mk && hi > mk) warns.push(`Up to ${hi} mm exceeds the ${esc(p.ex.name)} maker's guidance of ${mk} mm or less.`);
+      else if (hi > lim) warns.push(`Up to ${hi} mm is long for ${p.drive === 'direct' ? 'direct drive' : 'bowden'} (PrintCal flags anything above ${lim} mm). Long retractions on direct drive can pull molten plastic into the cold zone and jam it.`);
+    }
+    const nBlocks = Math.floor((hi - lo) / st + 1e-9) + 1;
+    let out = demo('tw') + `<div class="res">${big('Tower range', `${ft(a, 2)} → ${ft(z, 2)}`, TW_MODE === 'temp' ? '°C' : TW_MODE === 'retract' ? 'mm' : '', blocks.length ? 'bad' : 'alt')}${big('Blocks', nBlocks, '', 'alt')}${big('Tower height ≈', ft(b + nBlocks * ev, 1), 'mm', 'alt')}`;
+    if (Number.isFinite(h)) {
+      const k = Math.max(0, Math.floor((h - b) / ev + 1e-9));
+      const v = Math.min(hi, Math.max(lo, a + dir * st * k));
+      out += big('Setting at your height', ft(v, 3), TW_MODE === 'temp' ? '°C' : TW_MODE === 'retract' ? 'mm' : '') + '</div>';
+      const fr = (h - b) / ev - Math.floor((h - b) / ev);
+      if (h < b) warns.push('That height is inside the base, below the first block, so it reads as the bottom value.');
+      else if (fr < 0.08 || fr > 0.92) warns.push('That height is right on a block boundary. Measure from the middle of the block you like.');
+    } else out += '</div>';
+    out += warns.map(M.warn).join('');
+    if (blocks.length && !OVERRIDE.tw) out += blocks.map(M.block).join('') + `<button type="button" class="ovr" data-ovr="tw">My hotend really is rated higher. Remove the block</button>`;
+    else if (blocks.length) out += M.warn('<b>Override active.</b> Temperature cap ignored.');
+    else out += M.ok('Tower range is inside your setup\'s limits.');
+    return { out_tw: out };
+  },
+
+  sk() {
+    const p = P(); OUT.sk = null;
+    const ac = n('sk_ac'), bd = n('sk_bd'), ad = n('sk_ad'), pl = $('sk_plane').value;
+    if (!ok(ac, bd, ad)) return { out_sk: need() };
+    if (ac <= 0 || bd <= 0 || ad <= 0) return { out_sk: M.block('All three lengths must be positive.') };
+    const side = Math.sqrt(2 * ac * ac + 2 * bd * bd - 4 * ad * ad) / 2;
+    const cosA = (ac * ac - side * side - ad * ad) / (2 * side * ad);
+    if (!Number.isFinite(side) || side <= 0 || Math.abs(cosA) > 1) return { out_sk: M.block('These lengths can\'t form a parallelogram. Re-measure (diagonals ≈ √2 × side).') };
+    const factor = Math.tan(Math.PI / 2 - Math.acos(cosA)), deg = Math.atan(factor) * 180 / Math.PI;
+    let h = demo('sk') + `<div class="res">${big('Skew factor', ft(factor, 6))}${big('Out of square', f(Math.abs(deg), 3), '°', 'alt')}${big('Shear per 100 mm', f(Math.abs(factor * 100), 3), 'mm', 'alt')}${big('Side AB', f(side, 2), 'mm', 'alt')}</div>`;
+    if (Math.abs(deg) > SKEW_WARN_DEG) h += M.warn(`More than ${SKEW_WARN_DEG}° out of square (PrintCal flag). Check frame squareness and gantry wheels first; software skew correction is for the small leftover.`);
+    if (!p.isK) return { out_sk: h + M.note('PrintCal generates Klipper\'s <code>SET_SKEW</code> only. Marlin\'s skew correction (<code>M852</code>) has to be compiled in, and stock Creality firmware usually doesn\'t include it.') };
+    h += code(`SET_SKEW ${pl}=${ft(ac, 3)},${ft(bd, 3)},${ft(ad, 3)}\nSKEW_PROFILE SAVE=my_skew_profile\nSAVE_CONFIG`, '1 · Set and save the profile') +
+         code('; start G-code, after homing / purge:\nSKEW_PROFILE LOAD=my_skew_profile\n; end G-code:\nSET_SKEW CLEAR=1', '2 · Load it in your slicer\'s start/end G-code') +
+         M.note('Reprint the square and run <code>CALC_MEASURED_SKEW AC=… BD=… AD=…</code> to verify.');
+    if (T('sk_ac') && T('sk_bd') && T('sk_ad')) OUT.sk = { kRaw: [`SET_SKEW ${pl}=${ft(ac, 3)},${ft(bd, 3)},${ft(ad, 3)}`, 'SKEW_PROFILE SAVE=my_skew_profile', 'SAVE_CONFIG'] };
+    return { out_sk: h };
+  },
+
+  sh() {
+    const nom = n('sh_nom'), xs = n('sh_x'), ys = n('sh_y'), zs = n('sh_z');
+    if (!ok(nom) || nom <= 0) return { out_sh: need() };
+    const sc = m => Number.isFinite(m) && m > 0 ? nom / m * 100 : NaN, sr = m => Number.isFinite(m) && m > 0 ? m / nom * 100 : NaN;
+    const xy = ok(xs, ys) ? (xs + ys) / 2 : (Number.isFinite(xs) ? xs : ys);
+    let h = demo('sh') + `<div class="res">${big('Orca Shrinkage (XY)', f(sr(xy), 2), '%')}${big('Scale X', f(sc(xs), 2), '%', 'alt')}${big('Scale Y', f(sc(ys), 2), '%', 'alt')}${big('Scale Z', f(sc(zs), 2), '%', 'alt')}</div>`;
+    if (ok(xs, ys) && Math.abs(xs - ys) / nom * 100 > XY_DIFF_WARN_PCT) h += M.warn(`X and Y differ by more than ${XY_DIFF_WARN_PCT} %. That usually means one axis has a belt or rotation_distance problem, not filament shrinkage. Fix the axis instead of scaling.`);
+    if ([sc(xs), sc(ys), sc(zs)].some(v => Number.isFinite(v) && Math.abs(v - 100) > SCALE_WARN_PCT)) h += M.warn(`A correction above ${SCALE_WARN_PCT} % is unusual. Re-measure, and check that the extruder and flow are calibrated.`);
+    return { out_sh: h };
+  },
+
+  fi() {
+    const d = n('fi_dia'), rho = n('fi_rho'), g = n('fi_gross'), e = n('fi_empty'), need_m = n('fi_need');
+    if (!ok(d, rho) || rho <= 0) return { out_fi: need() };
+    const gPerM = rho * Math.PI * (d / 20) ** 2 * 100, net = ok(g, e) ? g - e : NaN, len = net / gPerM;
+    let h = demo('fi') + `<div class="res">${big('Filament left', ft(net, 0), 'g')}${big('≈ Length left', f(len, 1), 'm', Number.isFinite(need_m) && len < need_m ? 'bad' : '')}${big('Weight per metre', f(gPerM, 3), 'g/m', 'alt')}${big('1 kg spool', f(1000 / gPerM, 0), 'm', 'alt')}</div>`;
+    if (Number.isFinite(net) && net < 0) return { out_fi: h + M.block('Gross weight is less than the empty spool.') };
+    if (ok(len, need_m)) { const mg = len - need_m;
+      h += mg < 0 ? M.block(`Short by ≈ ${f(-mg, 1)} m (${f(-mg * gPerM, 0)} g). Swap spools or plan a filament change.`)
+         : mg < need_m * 0.05 ? M.warn(`Only ≈ ${f(mg, 1)} m spare (under 5 %). Spool-weight tolerance can eat that.`)
+         : M.ok(`≈ ${f(mg, 1)} m (${f(mg * gPerM, 0)} g) to spare.`); }
+    return { out_fi: h };
+  },
+
+  pd() {
+    const p = P(), bed = $('pd_heater').value === 'bed';
+    const t = n('pd_target'), c = n('pd_cycles');
+    if (!ok(t)) return { out_pd: need() };
+    if (t <= 0) return { out_pd: M.block('The target must be above zero.') };
+    if (!p.isK && !(ok(c) && c >= 3 && c <= 20 && c % 1 === 0)) return { out_pd: M.block('Cycles must be a whole number from 3 to 20. Marlin needs at least 3; 8 is a common choice.') };
+    const blocks = [], warns = [];
+    if (bed) {
+      const preset = p.pr.bedT != null && p.pr.bedT < BED_CAP_C;
+      const cap = preset ? p.pr.bedT : BED_CAP_C;
+      if (t > cap) blocks.push(`<b>${ft(t, 1)} °C is above the bed limit of ${cap} °C</b> (${preset ? `bed max_temp in the ${esc(p.pr.name)} preset` : 'PrintCal\'s bed cap'}). Tune at the bed temperature you actually print with.`);
+    } else {
+      if (p.capT != null && t > p.capT) blocks.push(`<b>${ft(t, 1)} °C is above your cap of ${p.capT} °C</b> (${p.capWhy}). ${p.s.hot === 'ptfe' ? 'PTFE degrades at high temperature, and firmware stops heating near max_temp.' : 'The firmware refuses targets above max_temp.'}`);
+      if (p.capT == null) warns.push('PrintCal has no temperature limit for this hotend. Enter your firmware\'s max_temp in setup so the target can be checked.');
+      if (t < 170) warns.push('Below 170 °C is colder than common filaments print at. Tune at the temperature you use most.');
+    }
+    let c1;
+    if (p.isK) c1 = code(`PID_CALIBRATE HEATER=${bed ? 'heater_bed' : 'extruder'} TARGET=${ft(t, 1)}`, '1 · Run it and wait until it reports the new PID values (a few minutes)') +
+                    code('SAVE_CONFIG', '2 · Save the result (restarts Klipper)');
+    else c1 = code(`M303 E${bed ? -1 : 0} S${ft(t, 1)} C${c} U1`, '1 · Run it and wait for "PID Autotune finished" (U1 applies the result)') +
+              code('M500', '2 · Save to EEPROM') +
+              (bed ? M.note('Bed tuning only works if the firmware was built with <code>PIDTEMPBED</code>. If <code>M303 E-1</code> is rejected, the bed isn\'t PID-controlled on your firmware, so leave it as it is.') : '');
+    let h = warns.map(M.warn).join('');
+    if (!blocks.length) h += M.note(bed ? 'Start with the bed at room temperature.' : 'Start with the hotend at room temperature, and run the part-cooling fan the way you do while printing.');
+    return { out_pd: h + guarded('pd', blocks, c1) };
+  },
+
+  ax() {
+    const p = P(), belt = $('ax_type').value === 'belt';
+    document.querySelectorAll('[data-ax]').forEach(e => e.style.display = (e.dataset.ax === 'belt') === belt ? '' : 'none');
+    const a = n(belt ? 'ax_pitch' : 'ax_spitch'), b = n(belt ? 'ax_teeth' : 'ax_starts'), full = n('ax_full'), micro = n('ax_micro');
+    if (!ok(a, b, full, micro)) return { out_ax: need() };
+    if (a <= 0 || b <= 0) return { out_ax: M.block('Both values must be above zero.') };
+    if (b % 1 !== 0) return { out_ax: M.block(belt ? 'Pulley teeth must be a whole number.' : 'Thread starts must be a whole number.') };
+    const rd = a * b, steps = full * micro / rd, same = (x, y) => Math.abs(x - y) < 1e-9;
+    let h = `<div class="res">${big('rotation_distance', ft(rd, 4), 'mm')}${big('Marlin steps/mm', ft(steps, 3), '', 'alt')}${big('One microstep moves', ft(rd / (full * micro) * 1000, 2), 'µm', 'alt')}</div>`;
+    if (belt) h += same(rd, 40) ? M.ok('Matches X and Y in every official Klipper Ender config: 2 mm GT2 belt × 20-tooth pulley = 40.')
+                                : M.warn(`Every official Klipper Ender config uses 40 for X and Y (2 mm GT2 belt × 20-tooth pulley). ${ft(rd, 4)} is only right if you changed the pulleys or belts.`);
+    else if (p.pr.z != null) h += same(rd, p.pr.z) ? M.ok(`Matches Z in the ${esc(p.pr.name)} preset (${p.pr.z}).`)
+                                : M.warn(`The ${esc(p.pr.name)} preset uses ${p.pr.z} for Z. ${ft(rd, 4)} is only right if your leadscrew is different: check its pitch and count the thread starts on the end of the screw.`);
+    else h += M.note(`PrintCal has no reference Z value for the ${esc(p.pr.name)}. Measure the pitch and count the thread starts on the end of the leadscrew.`);
+    h += M.note(p.isK ? 'Reference only. Compare it with <code>rotation_distance</code> in <code>[stepper_x]</code>, <code>[stepper_y]</code> or <code>[stepper_z]</code>. On Klipper it doesn\'t depend on the motor or microsteps; those have their own keys (<code>full_steps_per_rotation</code>, <code>microsteps</code>).'
+                      : 'Reference only. Compare the steps/mm with the X, Y or Z number on the <code>M92</code> line of <code>M503</code>.');
+    return { out_ax: h };
+  },
+
+  sum() {
+    const p = P(); let h = '';
+    if (p.isK) {
+      const sec = {};
+      ['ex', 'pa', 'is'].forEach(k => (OUT[k]?.k || []).forEach(([s, line]) => (sec[s] = sec[s] || []).push(line)));
+      const blocks = Object.entries(sec).map(([s, L]) => `${s}\n${L.join('\n')}`);
+      if (blocks.length) h += code(`# Change these keys inside your existing sections:\n\n${blocks.join('\n\n')}`, 'printer.cfg') + code('FIRMWARE_RESTART', 'Then');
+      if (OUT.sk?.kRaw) h += code(OUT.sk.kRaw.join('\n'), 'Skew (console)');
+    } else {
+      const L = ['ex', 'pa', 'is'].flatMap(k => OUT[k]?.m || []);
+      if (L.length) h += code(`${L.join('\n')}\nM500\nM503   ; confirm`, 'Send from a terminal');
+    }
+    return { out_sum: h || M.note('Nothing to apply yet. Results appear here once a calculator above passes its checks.') };
+  }
+};
+
+/* ---------- tower modes ---------- */
+let TW_MODE = 'temp';
+function setTowerDefaults(mode) {
+  const p = P();
+  if (mode === 'retract') {
+    // OrcaSlicer retraction test defaults: DD 0→2 step 0.1; bowden 1→6 step 0.2
+    const dd = p.drive === 'direct';
+    $('tw_start').value = dd ? 0 : 1; $('tw_end').value = dd ? 2 : 6; $('tw_step').value = dd ? 0.1 : 0.2; $('tw_every').value = 1; $('tw_h').value = dd ? 8 : 12;
+  } else if (mode === 'temp') {
+    $('tw_start').value = 220; $('tw_end').value = 190; $('tw_step').value = 5; $('tw_every').value = 10; $('tw_h').value = 27; clampTempDefaults();
+  }
+  const u = mode === 'temp' ? '°C' : mode === 'retract' ? 'mm' : '';
+  $('tw_u1').textContent = u; $('tw_u2').textContent = u;
+}
+function clampTempDefaults() {
+  const p = P(); if (p.capT == null) return;
+  ['tw_start', 'tw_end'].forEach(id => { if (n(id) > p.capT) $(id).value = p.capT; });
+}
+
+/* ---------- wiring ---------- */
+function run(key) { const res = CALC[key](); for (const id in res) { const el = $(id); if (el) el.innerHTML = res[id]; } }
+function runAll() { ['pd', 'ex', 'pa', 'is', 'fl', 'mv', 'tw', 'sk', 'sh', 'ax', 'fi'].forEach(run); run('sum'); }
+
+function saveAll() {
+  const o = { _tw: TW_MODE, _touch: [...TOUCH], _ufw: USER_FW, _preset: [...document.querySelectorAll('main input.preset')].map(el => el.id) };
+  document.querySelectorAll('main input[id], main select[id]').forEach(el => o[el.id] = el.type === 'checkbox' ? el.checked : el.value);
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(o)); } catch (_) {}
+}
+function loadSaved() {
+  let o = null; try { o = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (_) {}
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return false;
+  for (const id in o) { const el = $(id); if (!el || !el.closest('main')) continue; if (el.type === 'checkbox') el.checked = !!o[id]; else el.value = String(o[id] ?? ''); }
+  if (['temp', 'retract', 'custom'].includes(o._tw)) setTwSeg(o._tw, false);
+  if (Array.isArray(o._touch)) o._touch.forEach(k => typeof k === 'string' && TOUCH.add(k));
+  USER_FW = o._ufw === true;
+  if (Array.isArray(o._preset)) o._preset.forEach(k => { const el = typeof k === 'string' ? $(k) : null; if (el && el.tagName === 'INPUT' && el.closest('main')) el.classList.add('preset'); });
+  // a stored value that no longer matches an option (renamed preset, hand-edited storage) → fall back to defaults
+  let bad = false;
+  document.querySelectorAll('main select[id]').forEach(el => { if (el.value === '' || el.selectedIndex < 0) { el.value = DEFAULTS[el.id]; bad = true; } });
+  if (!byId(PRINTERS, $('s_printer').value)) { $('s_printer').value = DEF_PRINTER; bad = true; }
+  if (!byId(EXTRUDERS, $('s_ext').value)) { $('s_ext').value = 'stock'; bad = true; }
+  return bad ? 'repaired' : true;
+}
+function setTwSeg(mode, defaults = true) {
+  TW_MODE = mode;
+  $('tw_seg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+  if (defaults) setTowerDefaults(mode);
+  else { const u = mode === 'temp' ? '°C' : mode === 'retract' ? 'mm' : ''; $('tw_u1').textContent = u; $('tw_u2').textContent = u; }
+}
+
+populateSetup();
+const DEFAULTS = {};
+document.querySelectorAll('main input[id], main select[id]').forEach(el => DEFAULTS[el.id] = el.type === 'checkbox' ? el.checked : el.value);
+DEFAULTS.s_printer = DEF_PRINTER;
+
+// setup changes
+const SETUP_MAP = { s_printer: 'printer', s_fw: 'fw', s_ext: 'ext', s_drive: 'drive', s_hot: 'hot', s_maxT: 'hot', s_noz: 'noz', s_full: 'motor', s_micro: 'motor', s_gear: 'gear', s_adxl: 'adxl' };
+Object.entries(SETUP_MAP).forEach(([id, what]) => $(id).addEventListener('change', () => {
+  Object.keys(OVERRIDE).forEach(k => delete OVERRIDE[k]);
+  if (id === 's_fw') USER_FW = true;
+  applyPreset(what); renderSetup(); runAll(); saveAll();
+}));
+// calculators
+document.querySelectorAll('section[data-calc]').forEach(sec => {
+  const key = sec.dataset.calc;
+  const go = e => {
+    // text/number inputs already re-rendered on 'input'; re-rendering again on 'change' (blur) would
+    // destroy a button the user is in the middle of clicking (e.g. override), so skip it.
+    if (e.type === 'change' && e.target.tagName !== 'SELECT') return;
+    if (e.target.classList) e.target.classList.remove('preset');
+    if (e.target.id && e.target.id !== 'ex_cur') TOUCH.add(e.target.id);
+    Object.keys(OVERRIDE).filter(k => k.startsWith(key)).forEach(k => delete OVERRIDE[k]);
+    if (key === 'ex') renderSetup();
+    run(key); run('sum'); saveAll();
+  };
+  sec.addEventListener('input', go); sec.addEventListener('change', go);
+});
+$('tw_seg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; TOUCH.add('tw_mode'); setTwSeg(b.dataset.m); delete OVERRIDE.tw; run('tw'); saveAll(); });
+$('pd_heater').addEventListener('change', e => { if (!T('pd_target')) $('pd_target').value = e.target.value === 'bed' ? 60 : 200; });   // runs before the section handler re-renders
+$('fi_mat').addEventListener('change', e => { if (e.target.value !== 'custom') { $('fi_rho').value = e.target.value; run('fi'); saveAll(); } });
+$('fi_rho').addEventListener('input', () => { const m = $('fi_mat'); if (m.value !== $('fi_rho').value) m.value = 'custom'; });
+
+// overrides & copy
+let toastT;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1300); }
+function copy(text) {
+  const done = () => toast('Copied');
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, () => fb());
+  else fb();
+  function fb() { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (_) {} ta.remove(); }
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('button[data-copy]'); if (c) return copy(decodeURIComponent(c.dataset.copy));
+  const o = e.target.closest('button[data-ovr]');
+  if (o) { OVERRIDE[o.dataset.ovr] = true; const sec = o.closest('section[data-calc]'); run(sec.dataset.calc); run('sum'); }
+});
+$('resetAll').addEventListener('click', () => {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+  for (const id in DEFAULTS) { const el = $(id); if (el.type === 'checkbox') el.checked = DEFAULTS[id]; else el.value = DEFAULTS[id]; }
+  Object.keys(OVERRIDE).forEach(k => delete OVERRIDE[k]); TOUCH.clear(); USER_FW = false;
+  document.querySelectorAll('main input.preset').forEach(el => el.classList.remove('preset'));
+  setTwSeg('temp'); applyPreset('printer'); renderSetup(); runAll();
+});
+
+// nav highlight
+const links = [...document.querySelectorAll('nav.side a')];
+const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id)); }), { rootMargin: '-30% 0px -60% 0px' });
+document.querySelectorAll('main > section[id]').forEach(s => io.observe(s));
+
+// boot
+const loaded = loadSaved();
+if (!loaded) { $('s_printer').value = DEF_PRINTER; applyPreset('printer'); }
+else {
+  if (loaded === 'repaired') { USER_FW = false; applyPreset('printer'); }
+  const p = P(); document.body.classList.toggle('fw-klipper', p.isK); document.body.classList.toggle('fw-marlin', !p.isK);
+  PREV_ISK = p.isK; PREV_EXT = $('s_ext').value;
+}
+renderSetup();
+runAll();
+</script>
+</body>
+</html>
