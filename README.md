@@ -10,11 +10,12 @@ It's one `index.html` file: no build step, no server, no tracking.
 
 ## Using it
 
-1. **Describe your printer** under *Your printer*: model, firmware, extruder, hotend, nozzle. Starting values, the commands shown (Klipper or Marlin) and every safety limit follow from this.
-2. **Calibrate in order:** PID tuning (only after a hotend, heater or fan change) → extruder → pressure advance → flow ratio → max volumetric speed, then towers, input shaper, skew and shrinkage as needed. Each step assumes the earlier ones are right. *Axis steps* is a reference card for X/Y/Z values after a board swap or rebuild.
-3. **Type your measurements over the example numbers.** A result built from example numbers is never added to *All changes*.
-4. **Test, then save.** Klipper results give a live command (forgotten on restart) and the line to make permanent in `printer.cfg`. Marlin results end with `M500`.
-5. **Apply everything** from *All changes*.
+1. **Describe your printer** in the sentence at the top: model, firmware, extruder. If you've upgraded the hotend, nozzle, mounting or motor, open *Upgraded parts?* underneath. Starting values, the commands shown (Klipper or Marlin) and every safety limit follow from this.
+2. **Pick a problem** under *What do you want to fix?*. Each tile names a symptom and takes you to the tool that fixes it. Each tool says what it fixes, then gives three steps: print, measure, type it in.
+3. **New or rebuilt printer? Calibrate in order:** PID tuning (only after a hotend, heater or fan change) → extruder → pressure advance → flow ratio → max volumetric speed, then towers, input shaper, skew and shrinkage as needed. Each step assumes the earlier ones are right. *Axis steps* is a reference card for X/Y/Z values after a board swap or rebuild.
+4. **Type your measurements over the example numbers.** A result built from example numbers is never added to *All changes*.
+5. **Test, then save.** Klipper results give a live command (forgotten on restart) and the line to make permanent in `printer.cfg`. Marlin results end with `M500`.
+6. **Apply everything** from *All changes*.
 
 What the result markers mean:
 
@@ -163,5 +164,7 @@ Renaming or removing an `id` is safe: visitors who had it selected are moved bac
 | PID tuning | builds `PID_CALIBRATE HEATER=… TARGET=…` or `M303 E… S… C… U1`; no maths | [Klipper: Configuration checks](https://www.klipper3d.org/Config_checks.html), [Marlin M303](https://marlinfw.org/docs/gcode/M303.html) |
 
 Printer presets come from [Klipper's official printer configs](https://github.com/Klipper3d/klipper/tree/master/config). The Ender 3 V3 family has no upstream config, so its speed, acceleration and nozzle rating come from [Creality's spec comparison](https://creality.com/compare/compare-ender-3-v3-series). Extruder values come from each maker's documentation, linked in the page's reference table.
+
+The page embeds the [Barlow](https://github.com/jpt/barlow) typeface (SIL Open Font License 1.1), so it makes no third-party requests.
 
 Made by **Vidom**. Always back up your printer config before changing it.
